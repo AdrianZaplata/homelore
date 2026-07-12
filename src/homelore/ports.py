@@ -2,7 +2,7 @@ from collections.abc import Callable, Sequence
 from datetime import datetime
 from typing import Protocol
 
-from homelore.domain import Entity, Extraction
+from homelore.domain import Entity, Extraction, Memory
 
 Clock = Callable[[], datetime]
 """Returns the current time as an aware UTC datetime."""
@@ -18,6 +18,17 @@ class Extractor(Protocol):
     """
 
     def extract(self, text: str, known_entities: Sequence[Entity]) -> Extraction: ...
+
+
+class Summarizer(Protocol):
+    """Writes one Community Summary from the community's memories.
+
+    The summary must be grounded: it synthesizes what the memories say and
+    invents nothing. May raise on failure; summaries are derived and
+    rebuildable, so a failure never endangers data.
+    """
+
+    def summarize(self, entities: Sequence[str], memories: Sequence[Memory]) -> str: ...
 
 
 class Embedder(Protocol):

@@ -73,6 +73,21 @@ def build_server(service: HomeloreService) -> FastMCP:
         ]
 
     @server.tool()
+    def reflect() -> list[dict[str, Any]]:  # pyright: ignore[reportUnusedFunction]
+        """Look across the whole family history to answer broad, reflective
+        questions no single memory can ("how has our year been?", "what
+        themes keep coming up with the kids?"). Returns one summary per
+        cluster of family life, each grounded in the underlying memories —
+        synthesize your answer from them and nothing else. For a specific
+        factual question ("what's Mia's shoe size?") use recall instead; for
+        date questions use upcoming_dates.
+        """
+        return [
+            {"about": list(community.entities), "summary": community.summary}
+            for community in service.reflect()
+        ]
+
+    @server.tool()
     def profile(name: str) -> dict[str, Any]:  # pyright: ignore[reportUnusedFunction]
         """Everything known about one person, place, or thing. Use for
         "who is X?", "tell me about X", or catching up on someone. Accepts any

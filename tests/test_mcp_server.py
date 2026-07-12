@@ -17,7 +17,7 @@ def test_tools_register_with_sane_schemas(tmp_path: Path) -> None:
 
     tools = {tool.name: tool for tool in asyncio.run(server.list_tools())}
 
-    assert set(tools) == {"remember", "recall", "profile", "upcoming_dates"}
+    assert set(tools) == {"remember", "recall", "profile", "upcoming_dates", "reflect"}
     assert all(tool.description for tool in tools.values())
 
     remember_schema = tools["remember"].inputSchema
@@ -40,3 +40,10 @@ def test_tools_register_with_sane_schemas(tmp_path: Path) -> None:
     # Date questions must route here, never to recall.
     assert upcoming.description is not None
     assert "coming up" in upcoming.description.lower()
+
+    reflect = tools["reflect"]
+    assert reflect.inputSchema.get("required", []) == []
+    # Broad questions route here; specific ones must be steered back to recall.
+    assert reflect.description is not None
+    assert "broad" in reflect.description.lower()
+    assert "recall" in reflect.description.lower()

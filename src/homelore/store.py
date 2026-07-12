@@ -59,7 +59,26 @@ CREATE TABLE IF NOT EXISTS mentions (
 CREATE TABLE IF NOT EXISTS extraction_retries (
     memory_id INTEGER PRIMARY KEY REFERENCES memories(id)
 );
+CREATE TABLE IF NOT EXISTS communities (
+    entity_ids TEXT NOT NULL,
+    memory_ids TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    PRIMARY KEY (entity_ids, memory_ids)
+);
+CREATE TABLE IF NOT EXISTS community_state (
+    write_generation INTEGER NOT NULL,
+    clean_generation INTEGER
+);
 """
+
+# One row, created on open: write_generation counts writes, clean_generation
+# records the generation the community layer was last refreshed against.
+_INIT_COMMUNITY_STATE = """
+INSERT INTO community_state (write_generation, clean_generation)
+    SELECT 0, NULL WHERE NOT EXISTS (SELECT 1 FROM community_state);
+"""
+
+_MARK_COMMUNITIES_DIRTY = "UPDATE community_state SET write_generation = write_generation + 1"
 
 # Memories extracted before the mentions table existed have relation and date
 # rows but no mention rows; rebuild what those imply so they stay reachable
@@ -75,6 +94,14 @@ INSERT OR IGNORE INTO mentions (memory_id, entity_id)
 _MEMORY_COLUMNS = (
     "memories.id, memories.text, memories.author, memories.created_at, memories.event_date"
 )
+
+
+def _encode_ids(ids: tuple[int, ...]) -> str:
+    return ",".join(str(id_) for id_ in ids)
+
+
+def _decode_ids(encoded: str) -> tuple[int, ...]:
+    return tuple(int(part) for part in encoded.split(","))
 
 
 def _memory_from_row(row: tuple[int, str, str, str, str | None]) -> Memory:
@@ -100,6 +127,22 @@ class DerivedFacts:
 class SearchHit:
     memory: Memory
     similarity: float
+
+
+@dataclass(frozen=True)
+class Community:
+    """A cluster of closely connected entities plus the memories mentioning
+    them. Identity is the full membership: any change to either set makes it
+    a different community, whose summary must be rewritten."""
+
+    entity_ids: tuple[int, ...]
+    memory_ids: tuple[int, ...]
+
+
+@dataclass(frozen=True)
+class SummarizedCommunity:
+    community: Community
+    summary: str
 
 
 class GraphIndex:
@@ -136,6 +179,43 @@ class GraphIndex:
             memories |= self._memories_by_entity.get(entity_id, set())
         return frozenset(memories - {memory_id})
 
+    def communities(self) -> tuple[Community, ...]:
+        """Clusters of closely connected entities: two entities connect when
+        a relation links them or one memory mentions both. Connected
+        components are the v1 clustering — family-scale graphs split along
+        life domains, and the algorithm stays a private detail here."""
+        adjacency: dict[int, set[int]] = defaultdict(set)
+        for entity_id, neighbors in self._neighbors.items():
+            adjacency[entity_id] |= neighbors
+        for entity_ids in self._entities_by_memory.values():
+            for entity_id in entity_ids:
+                adjacency[entity_id] |= entity_ids - {entity_id}
+        communities: list[Community] = []
+        seen: set[int] = set()
+        for start in sorted(set(self._memories_by_entity) | set(adjacency)):
+            if start in seen:
+                continue
+            component = {start}
+            frontier = [start]
+            while frontier:
+                for neighbor in adjacency[frontier.pop()]:
+                    if neighbor not in component:
+                        component.add(neighbor)
+                        frontier.append(neighbor)
+            seen |= component
+            memory_ids = {
+                memory_id
+                for entity_id in component
+                for memory_id in self._memories_by_entity.get(entity_id, ())
+            }
+            communities.append(
+                Community(
+                    entity_ids=tuple(sorted(component)),
+                    memory_ids=tuple(sorted(memory_ids)),
+                )
+            )
+        return tuple(communities)
+
 
 class MemoryStore:
     """Append-only memory log with vector search, in a single SQLite file."""
@@ -153,6 +233,7 @@ class MemoryStore:
         connection.executescript(_SCHEMA)
         with connection:
             connection.execute(_BACKFILL_MENTIONS)
+            connection.execute(_INIT_COMMUNITY_STATE)
         return cls(connection)
 
     def add(
@@ -164,6 +245,7 @@ class MemoryStore:
         embedding: list[float],
     ) -> Memory:
         with self._connection:
+            self._connection.execute(_MARK_COMMUNITIES_DIRTY)
             cursor = self._connection.execute(
                 "INSERT INTO memories (text, author, created_at, event_date, embedding)"
                 " VALUES (?, ?, ?, ?, ?)",
@@ -215,6 +297,7 @@ class MemoryStore:
         entities — a mention is a mention.
         """
         with self._connection:
+            self._connection.execute(_MARK_COMMUNITIES_DIRTY)
             resolver = _EntityResolver(self._connection)
             for extracted in extraction.entities:
                 resolver.register(extracted.name, extracted.aliases)
@@ -338,6 +421,78 @@ class MemoryStore:
             mentions=self._connection.execute("SELECT memory_id, entity_id FROM mentions"),
             edges=self._connection.execute("SELECT subject_id, object_id FROM relations"),
         )
+
+    def memories_by_ids(self, memory_ids: tuple[int, ...]) -> tuple[Memory, ...]:
+        """The given memories, oldest happening first — chronological order,
+        the shape a synthesis wants to read them in."""
+        placeholders = ",".join("?" for _ in memory_ids)
+        rows = self._connection.execute(
+            f"SELECT {_MEMORY_COLUMNS} FROM memories WHERE id IN ({placeholders})",
+            memory_ids,
+        ).fetchall()
+        memories = [_memory_from_row(row) for row in rows]
+        memories.sort(key=lambda memory: (memory.happened_on, memory.id))
+        return tuple(memories)
+
+    def communities_dirty(self) -> bool:
+        """Whether the community layer must be rebuilt before it is trusted:
+        writes have happened since the generation it was last refreshed
+        against. A database with no memories has nothing to summarize and is
+        never dirty — so a never-refreshed database that already holds
+        memories (e.g. upgraded from before communities existed) correctly
+        reads as dirty."""
+        row = self._connection.execute(
+            "SELECT EXISTS (SELECT 1 FROM memories)"
+            " AND (clean_generation IS NULL OR clean_generation <> write_generation)"
+            " FROM community_state"
+        ).fetchone()
+        return bool(row[0])
+
+    def community_write_generation(self) -> int:
+        """The current write generation — capture it before clustering and
+        hand it back to replace_communities, so a write landing mid-refresh
+        keeps the layer dirty instead of being silently marked current."""
+        row = self._connection.execute("SELECT write_generation FROM community_state").fetchone()
+        return int(row[0])
+
+    def saved_communities(self) -> tuple[SummarizedCommunity, ...]:
+        """The stored community layer: every community with its summary."""
+        rows = self._connection.execute(
+            "SELECT entity_ids, memory_ids, summary FROM communities"
+        ).fetchall()
+        return tuple(
+            SummarizedCommunity(
+                community=Community(entity_ids=_decode_ids(row[0]), memory_ids=_decode_ids(row[1])),
+                summary=row[2],
+            )
+            for row in rows
+        )
+
+    def replace_communities(
+        self, communities: tuple[SummarizedCommunity, ...], as_of_generation: int
+    ) -> None:
+        """Swap in the freshly clustered community layer, atomically — a
+        failed refresh leaves the old layer and the dirty state untouched.
+
+        The layer is clean only as of ``as_of_generation``, the write
+        generation the refresh clustered from; writes that landed since keep
+        it dirty for the next refresh."""
+        with self._connection:
+            self._connection.execute("DELETE FROM communities")
+            self._connection.executemany(
+                "INSERT INTO communities (entity_ids, memory_ids, summary) VALUES (?, ?, ?)",
+                [
+                    (
+                        _encode_ids(summarized.community.entity_ids),
+                        _encode_ids(summarized.community.memory_ids),
+                        summarized.summary,
+                    )
+                    for summarized in communities
+                ],
+            )
+            self._connection.execute(
+                "UPDATE community_state SET clean_generation = ?", (as_of_generation,)
+            )
 
     def mark_extraction_pending(self, memory_id: int) -> None:
         """Flag a memory whose extraction failed, so reindex can heal it."""

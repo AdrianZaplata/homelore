@@ -6,10 +6,10 @@ Freshness is lazy with change-scoped invalidation: every write marks the communi
 
 **Blocked by:** 03 — Graph-expanded `recall` + `profile`.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Communities are detected automatically from the Graph Index; no hand-defined clusters
-- [ ] Community Summaries are generated from the community's memories and grounded in them (no invented facts)
-- [ ] Writes mark the layer dirty; the next `reflect` refreshes only changed communities, then answers; unchanged summaries are not regenerated
-- [ ] `reflect` is exposed over MCP with a description that routes global/synthesis questions to it and specific questions away from it
-- [ ] Service-seam tests cover clustering, dirty-marking, change-scoped refresh, and summary reuse with the fake extractor/summarizer
+- [x] Communities are detected automatically from the Graph Index; no hand-defined clusters
+- [x] Community Summaries are generated from the community's memories and grounded in them (no invented facts)
+- [x] Writes mark the layer dirty; the next `reflect` refreshes only changed communities, then answers; unchanged summaries are not regenerated
+- [x] `reflect` is exposed over MCP with a description that routes global/synthesis questions to it and specific questions away from it
+- [x] Service-seam tests cover clustering, dirty-marking, change-scoped refresh, and summary reuse with the fake extractor/summarizer

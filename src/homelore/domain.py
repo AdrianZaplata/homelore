@@ -102,6 +102,17 @@ class Profile:
 
 
 @dataclass(frozen=True)
+class CommunitySummary:
+    """One community's LLM-written synthesis, with the entities it covers.
+
+    Grounded in the community's memories, it answers global questions
+    ("how has our year been?") that no single memory can."""
+
+    entities: tuple[str, ...]
+    summary: str
+
+
+@dataclass(frozen=True)
 class ExtractedEntity:
     """An entity as the extractor saw it: ``name`` should be the canonical name
     of an existing entity when the mention refers to one already known."""

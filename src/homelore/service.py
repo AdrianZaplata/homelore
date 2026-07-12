@@ -2,9 +2,16 @@ import calendar
 import logging
 from datetime import date, timedelta
 
-from homelore.domain import Profile, RecalledMemory, RememberResult, SpecialDate, UpcomingDate
-from homelore.ports import Clock, Embedder, Extractor
-from homelore.store import MemoryStore, SearchHit
+from homelore.domain import (
+    CommunitySummary,
+    Profile,
+    RecalledMemory,
+    RememberResult,
+    SpecialDate,
+    UpcomingDate,
+)
+from homelore.ports import Clock, Embedder, Extractor, Summarizer
+from homelore.store import MemoryStore, SearchHit, SummarizedCommunity
 
 _RECENCY_WEIGHT = 0.1
 _RECENCY_HALF_LIFE_DAYS = 365.0
@@ -17,11 +24,20 @@ class MissingApiKeyError(Exception):
     """Raised when an operation needs the extraction model but no key is set."""
 
 
+_HOW_TO_SET_KEY = (
+    " Get a key at https://console.anthropic.com and set the ANTHROPIC_API_KEY"
+    " environment variable. Recalling existing memories keeps working without it."
+)
+
 _MISSING_KEY_MESSAGE = (
     "ANTHROPIC_API_KEY is not set. Homelore needs it to understand new memories"
-    " (extracting people, relationships, and dates). Get a key at"
-    " https://console.anthropic.com and set the ANTHROPIC_API_KEY environment"
-    " variable. Recalling existing memories keeps working without it."
+    " (extracting people, relationships, and dates)." + _HOW_TO_SET_KEY
+)
+
+_MISSING_KEY_REFLECT_MESSAGE = (
+    "ANTHROPIC_API_KEY is not set. New memories have arrived since the last"
+    " reflection, and Homelore needs the key to bring its community summaries"
+    " current before answering." + _HOW_TO_SET_KEY
 )
 
 
@@ -36,11 +52,13 @@ class HomeloreService:
         store: MemoryStore,
         embedder: Embedder,
         extractor: Extractor | None,
+        summarizer: Summarizer | None,
         clock: Clock,
     ) -> None:
         self._store = store
         self._embedder = embedder
         self._extractor = extractor
+        self._summarizer = summarizer
         self._clock = clock
 
     def remember(self, text: str, author: str, event_date: date | None = None) -> RememberResult:
@@ -123,6 +141,63 @@ class HomeloreService:
         ]
         upcoming.sort(key=lambda u: (u.occurs_on, u.entity, u.label))
         return upcoming
+
+    def reflect(self) -> list[CommunitySummary]:
+        """The material for answering global questions: one grounded summary
+        per community, biggest slice of family life first.
+
+        Freshness is lazy: writes mark the layer dirty, and a dirty layer is
+        re-clustered and re-summarized here before answering — regenerating
+        only communities whose membership changed. Serving already-built
+        summaries needs no API key; only the refresh does."""
+        if self._store.communities_dirty():
+            self._refresh_communities()
+        names = self._entity_names()
+        saved = sorted(
+            self._store.saved_communities(),
+            key=lambda summarized: (
+                -len(summarized.community.memory_ids),
+                summarized.community.entity_ids,
+            ),
+        )
+        return [
+            CommunitySummary(
+                entities=tuple(names[entity_id] for entity_id in summarized.community.entity_ids),
+                summary=summarized.summary,
+            )
+            for summarized in saved
+        ]
+
+    def _refresh_communities(self) -> None:
+        """Re-cluster the graph and bring every community's summary current,
+        writing a new summary only for communities whose membership changed —
+        an unchanged community keeps its existing summary verbatim.
+
+        Clustering is local; only writing a summary needs the model, so the
+        missing-key error is raised only when one must actually be written.
+        The generation captured up front keeps the layer dirty if another
+        write lands while the model calls run."""
+        generation = self._store.community_write_generation()
+        names = self._entity_names()
+        existing = {
+            summarized.community: summarized.summary
+            for summarized in self._store.saved_communities()
+        }
+        refreshed: list[SummarizedCommunity] = []
+        for community in self._store.load_graph().communities():
+            summary = existing.get(community)
+            if summary is None:
+                if self._summarizer is None:
+                    raise MissingApiKeyError(_MISSING_KEY_REFLECT_MESSAGE)
+                summary = self._summarizer.summarize(
+                    entities=[names[entity_id] for entity_id in community.entity_ids],
+                    memories=self._store.memories_by_ids(community.memory_ids),
+                )
+            refreshed.append(SummarizedCommunity(community=community, summary=summary))
+        self._store.replace_communities(tuple(refreshed), as_of_generation=generation)
+
+    def _entity_names(self) -> dict[int, str]:
+        return {entity.id: entity.name for entity in self._store.list_entities()}
 
     def _graph_support(self, seeds: list[SearchHit]) -> dict[int, float]:
         """How strongly the graph ties each memory to the query: the best

@@ -8,7 +8,7 @@ from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from homelore.domain import Entity, Extraction
+from homelore.domain import Entity, Extraction, Memory
 from homelore.service import HomeloreService
 from homelore.store import MemoryStore
 
@@ -47,6 +47,19 @@ class FailingExtractor:
 
     def extract(self, text: str, known_entities: Sequence[Entity]) -> Extraction:
         raise RuntimeError("extraction model unavailable")
+
+
+class FakeSummarizer:
+    """Writes deterministic summaries embedding the memory texts, numbering
+    each one it writes — so reflect() results alone reveal whether a summary
+    was reused (same number) or regenerated (new number)."""
+
+    def __init__(self) -> None:
+        self._written = 0
+
+    def summarize(self, entities: Sequence[str], memories: Sequence[Memory]) -> str:
+        self._written += 1
+        return f"v{self._written}: " + " | ".join(memory.text for memory in memories)
 
 
 class FixedClock:
@@ -88,7 +101,12 @@ def _build(
 ) -> tuple[HomeloreService, FixedClock]:
     clock = FixedClock()
     store = MemoryStore.open(tmp_path / "homelore.db")
+    # The extractor and summarizer share one API key: both present or neither.
     service = HomeloreService(
-        store=store, embedder=FakeEmbedder(vectors), extractor=extractor, clock=clock
+        store=store,
+        embedder=FakeEmbedder(vectors),
+        extractor=extractor,
+        summarizer=FakeSummarizer() if extractor is not None else None,
+        clock=clock,
     )
     return service, clock

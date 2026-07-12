@@ -7,6 +7,7 @@ from homelore.extraction import ClaudeExtractor
 from homelore.mcp_server import build_server
 from homelore.service import HomeloreService
 from homelore.store import MemoryStore
+from homelore.summarization import ClaudeSummarizer
 
 
 def _utc_now() -> datetime:
@@ -23,10 +24,12 @@ def main() -> None:
     args = parser.parse_args()
 
     # No key is not fatal: recall keeps working, and remember explains what to set.
+    has_key = api_key_present()
     service = HomeloreService(
         store=MemoryStore.open(resolve_db_path(args.db_path)),
         embedder=LocalEmbedder(),
-        extractor=ClaudeExtractor() if api_key_present() else None,
+        extractor=ClaudeExtractor() if has_key else None,
+        summarizer=ClaudeSummarizer() if has_key else None,
         clock=_utc_now,
     )
     build_server(service).run(transport="stdio")
