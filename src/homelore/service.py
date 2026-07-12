@@ -1,11 +1,15 @@
 import calendar
 import logging
+from collections.abc import Sequence
 from datetime import date, timedelta
 
 from homelore.domain import (
     CommunitySummary,
+    ImportResult,
+    MemoryDraft,
     Profile,
     RecalledMemory,
+    ReindexResult,
     RememberResult,
     SpecialDate,
     UpcomingDate,
@@ -69,18 +73,34 @@ class HomeloreService:
         config problem, so we fail before saving rather than silently pile up
         memories that need retrying.
         """
-        if self._extractor is None:
-            raise MissingApiKeyError(_MISSING_KEY_MESSAGE)
+        extractor = self._require_extractor()
         [embedding] = self._embedder.embed([text])
+        draft = MemoryDraft(text=text, author=author, event_date=event_date)
+        return self._ingest(extractor, draft, embedding)
+
+    def import_memories(self, drafts: Sequence[MemoryDraft]) -> ImportResult:
+        """Seed from existing notes: ingest every draft through the same write
+        path as remember, embeddings computed in one batch. Each memory keeps
+        its draft's timestamp; extraction failures flag retries as usual."""
+        extractor = self._require_extractor()
+        embeddings = self._embedder.embed([draft.text for draft in drafts])
+        pending = 0
+        for draft, embedding in zip(drafts, embeddings, strict=True):
+            pending += self._ingest(extractor, draft, embedding).extraction_pending
+        return ImportResult(imported=len(drafts), extraction_pending=pending)
+
+    def _ingest(
+        self, extractor: Extractor, draft: MemoryDraft, embedding: list[float]
+    ) -> RememberResult:
         memory = self._store.add(
-            text=text,
-            author=author,
-            created_at=self._clock(),
-            event_date=event_date,
+            text=draft.text,
+            author=draft.author,
+            created_at=draft.created_at if draft.created_at is not None else self._clock(),
+            event_date=draft.event_date,
             embedding=embedding,
         )
         try:
-            extraction = self._extractor.extract(text, self._store.list_entities())
+            extraction = extractor.extract(draft.text, self._store.list_entities())
             derived = self._store.save_extraction(memory.id, extraction)
         except Exception:
             _logger.exception("extraction failed for memory %d; marked for retry", memory.id)
@@ -92,6 +112,39 @@ class HomeloreService:
             relations=derived.relations,
             special_dates=derived.special_dates,
         )
+
+    def reindex(self, full: bool = False) -> ReindexResult:
+        """Rebuild the derived indexes from the memory log (ADR 0001).
+
+        Healing mode (the default) re-runs extraction for exactly the
+        memories whose extraction failed or is pending. Full mode first drops
+        every derived structure and flags all memories, so improved
+        extraction reaches existing data. Either way each healed memory
+        commits on its own: an interruption loses nothing, re-running picks
+        up exactly the memories still flagged, and the log is never modified.
+        """
+        extractor = self._require_extractor()
+        if full:
+            self._store.reset_derived_indexes()
+        reextracted = failed = 0
+        for memory in self._store.pending_extractions():
+            try:
+                extraction = extractor.extract(memory.text, self._store.list_entities())
+                self._store.save_extraction(memory.id, extraction)
+                reextracted += 1
+            except Exception:
+                _logger.exception(
+                    "extraction failed again for memory %d; still flagged for retry", memory.id
+                )
+                failed += 1
+        if self._store.communities_dirty():
+            self._refresh_communities()
+        return ReindexResult(reextracted=reextracted, failed=failed)
+
+    def _require_extractor(self) -> Extractor:
+        if self._extractor is None:
+            raise MissingApiKeyError(_MISSING_KEY_MESSAGE)
+        return self._extractor
 
     def recall(self, query: str, limit: int = 5) -> list[RecalledMemory]:
         """Hybrid retrieval: the top vector hits seed a graph-neighborhood

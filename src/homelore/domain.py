@@ -148,6 +148,38 @@ class Extraction:
 
 
 @dataclass(frozen=True)
+class MemoryDraft:
+    """A memory not yet stored: what bulk import reads from a memories file.
+
+    ``created_at`` is when the note was originally written, when known;
+    a draft without one is recorded as of import time.
+    """
+
+    text: str
+    author: str
+    created_at: datetime | None = None
+    event_date: date | None = None
+
+
+@dataclass(frozen=True)
+class ImportResult:
+    """How a bulk import went: every draft counted in ``imported`` is safely
+    stored; ``extraction_pending`` of them await an extraction retry."""
+
+    imported: int
+    extraction_pending: int
+
+
+@dataclass(frozen=True)
+class ReindexResult:
+    """How a reindex went: ``reextracted`` memories re-derived their facts;
+    ``failed`` ones stay flagged for retry, so re-running finishes the job."""
+
+    reextracted: int
+    failed: int
+
+
+@dataclass(frozen=True)
 class RememberResult:
     """The saved memory plus everything derived from it, so a caller sees what
     the system understood. ``extraction_pending`` means extraction failed, the

@@ -25,5 +25,8 @@ A cluster of closely connected entities in the graph (e.g. everything around one
 ### Community Summary
 An LLM-written synthesis of one community's memories. Community summaries answer *global* questions ("how has our year been?") that no single memory can. They are refreshed lazily when the graph beneath them has changed.
 
+### Memories File
+The bulk-import format: a file of memories a self-hoster seeds Homelore from, one JSON object per line carrying the memory's text and author, and optionally when it was written and the event date. Imported memories go through the same write path as ones told to the assistant.
+
 ### Demo Family
 The fictional family whose memories ship with the public repository as seed data. Serves as the runnable demo and the test fixtures. No real family data ever appears in the repository.

@@ -501,6 +501,38 @@ class MemoryStore:
                 "INSERT OR IGNORE INTO extraction_retries (memory_id) VALUES (?)", (memory_id,)
             )
 
+    def reset_derived_indexes(self) -> None:
+        """Drop every derived structure and flag every memory for
+        re-extraction, in one transaction — the first step of a full rebuild
+        (ADR 0001). The memory log is untouched; interrupting after this
+        commit leaves the remaining work flagged, so healing finishes it."""
+        with self._connection:
+            self._connection.execute(_MARK_COMMUNITIES_DIRTY)
+            derived = (
+                "relations",
+                "special_dates",
+                "mentions",
+                "entity_aliases",
+                "entities",
+                "communities",
+            )
+            for table in derived:
+                self._connection.execute(f"DELETE FROM {table}")
+            self._connection.execute(
+                "INSERT OR IGNORE INTO extraction_retries (memory_id) SELECT id FROM memories"
+            )
+
+    def pending_extractions(self) -> tuple[Memory, ...]:
+        """The memories awaiting an extraction retry, oldest recorded first —
+        replaying in write order lets alias resolution meet entities in the
+        same sequence the original writes did."""
+        rows = self._connection.execute(
+            f"SELECT {_MEMORY_COLUMNS} FROM memories"
+            " JOIN extraction_retries ON extraction_retries.memory_id = memories.id"
+            " ORDER BY memories.id"
+        ).fetchall()
+        return tuple(_memory_from_row(row) for row in rows)
+
 
 class _EntityResolver:
     """Resolves mentions to entity ids within one save, creating and merging

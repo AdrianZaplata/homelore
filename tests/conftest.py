@@ -9,6 +9,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from homelore.domain import Entity, Extraction, Memory
+from homelore.ports import Extractor
 from homelore.service import HomeloreService
 from homelore.store import MemoryStore
 
@@ -94,10 +95,17 @@ def make_keyless_service(
     return _build(tmp_path, vectors, None)
 
 
+def make_service_with_extractor(
+    tmp_path: Path, vectors: dict[str, list[float]], extractor: Extractor
+) -> tuple[HomeloreService, FixedClock]:
+    """A service around a test-specific extractor (e.g. one that misbehaves)."""
+    return _build(tmp_path, vectors, extractor)
+
+
 def _build(
     tmp_path: Path,
     vectors: dict[str, list[float]],
-    extractor: FakeExtractor | FailingExtractor | None,
+    extractor: Extractor | None,
 ) -> tuple[HomeloreService, FixedClock]:
     clock = FixedClock()
     store = MemoryStore.open(tmp_path / "homelore.db")
