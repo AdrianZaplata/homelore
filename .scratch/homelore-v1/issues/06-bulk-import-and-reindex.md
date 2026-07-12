@@ -7,10 +7,10 @@
 
 **Blocked by:** 02 — Inline extraction on write.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Import ingests a memories file in bulk through the standard write path; imported memories are retrievable like any other
-- [ ] Reindex rebuilds all derived indexes from memories alone: dropping every derived table then reindexing restores equivalent query results
-- [ ] Healing mode retries only failed/pending extractions; full mode re-extracts everything
-- [ ] Interrupting a reindex loses no memories; re-running completes the job (idempotent)
-- [ ] Service-seam tests cover import, full rebuild equivalence, healing, and idempotence with the fake extractor
+- [x] Import ingests a memories file in bulk through the standard write path; imported memories are retrievable like any other
+- [x] Reindex rebuilds all derived indexes from memories alone: dropping every derived table then reindexing restores equivalent query results
+- [x] Healing mode retries only failed/pending extractions; full mode re-extracts everything
+- [x] Interrupting a reindex loses no memories; re-running completes the job (idempotent)
+- [x] Service-seam tests cover import, full rebuild equivalence, healing, and idempotence with the fake extractor
