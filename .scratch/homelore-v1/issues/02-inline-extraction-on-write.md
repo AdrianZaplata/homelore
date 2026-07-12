@@ -6,10 +6,10 @@ Extraction runs against Claude Haiku 4.5 behind the `Extractor` interface, with 
 
 **Blocked by:** 01 — Walking skeleton.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `remember` derives Entities, Relations, and SpecialDates inline; a fact recorded is immediately present in the derived indexes
-- [ ] Aliases resolve to existing Entities across memories; entity identity is never hand-modeled
-- [ ] Extraction failure still persists the Memory and marks it for retry; nothing is lost
-- [ ] Missing API key: `remember` errors with clear guidance; keyless read paths keep working
-- [ ] Service-seam tests cover all of the above with the fake Extractor; unit suite remains keyless
+- [x] `remember` derives Entities, Relations, and SpecialDates inline; a fact recorded is immediately present in the derived indexes
+- [x] Aliases resolve to existing Entities across memories; entity identity is never hand-modeled
+- [x] Extraction failure still persists the Memory and marks it for retry; nothing is lost
+- [x] Missing API key: `remember` errors with clear guidance; keyless read paths keep working
+- [x] Service-seam tests cover all of the above with the fake Extractor; unit suite remains keyless

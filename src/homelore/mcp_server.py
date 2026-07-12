@@ -20,12 +20,18 @@ def build_server(service: HomeloreService) -> FastMCP:
         author. If the memory describes a past event ("last summer we…"), pass
         the date it happened as event_date (YYYY-MM-DD); otherwise omit it.
         """
-        memory = service.remember(
+        result = service.remember(
             text,
             author=author,
             event_date=date.fromisoformat(event_date) if event_date else None,
         )
-        return {"saved": True, "date": memory.happened_on.isoformat()}
+        payload: dict[str, Any] = {"saved": True, "date": result.memory.happened_on.isoformat()}
+        if result.extraction_pending:
+            payload["note"] = (
+                "The memory is saved, but understanding it (who and what it is"
+                " about) failed and will be retried automatically."
+            )
+        return payload
 
     @server.tool()
     def recall(  # pyright: ignore[reportUnusedFunction]

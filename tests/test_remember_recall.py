@@ -11,7 +11,7 @@ POTTERY_MEMORY = "Ana mentioned she wants to learn pottery"
 def test_remember_records_text_author_and_timestamp(tmp_path: Path) -> None:
     service, _ = make_service(tmp_path, vectors={"Mia moved up to shoe size 32": [1.0, 0.0, 0.0]})
 
-    memory = service.remember("Mia moved up to shoe size 32", author="Adrian")
+    memory = service.remember("Mia moved up to shoe size 32", author="Adrian").memory
 
     assert memory.text == "Mia moved up to shoe size 32"
     assert memory.author == "Adrian"

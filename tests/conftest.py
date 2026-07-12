@@ -1,13 +1,14 @@
-"""Test doubles for the service seam: fake embedder and fixed clock.
+"""Test doubles for the service seam: fake embedder, fake extractor, fixed clock.
 
 Tests construct the real service with a real temp-file SQLite store; only the
-system boundaries (embedding model, wall clock) are faked.
+system boundaries (embedding model, extraction model, wall clock) are faked.
 """
 
 from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from homelore.domain import Entity, Extraction
 from homelore.service import HomeloreService
 from homelore.store import MemoryStore
 
@@ -27,6 +28,27 @@ class FakeEmbedder:
         return [self._vectors[text] for text in texts]
 
 
+class FakeExtractor:
+    """Maps exact texts to canned extractions, standing in for the LLM.
+
+    Unmapped text yields an empty extraction — a memory the extractor found
+    nothing in — so tests that don't care about extraction stay quiet.
+    """
+
+    def __init__(self, extractions: dict[str, Extraction] | None = None) -> None:
+        self._extractions = extractions or {}
+
+    def extract(self, text: str, known_entities: Sequence[Entity]) -> Extraction:
+        return self._extractions.get(text, Extraction())
+
+
+class FailingExtractor:
+    """An extractor whose model call always fails, for resilience tests."""
+
+    def extract(self, text: str, known_entities: Sequence[Entity]) -> Extraction:
+        raise RuntimeError("extraction model unavailable")
+
+
 class FixedClock:
     def __init__(self, now: datetime = NOW) -> None:
         self.now = now
@@ -39,8 +61,34 @@ class FixedClock:
 
 
 def make_service(
+    tmp_path: Path,
+    vectors: dict[str, list[float]],
+    extractions: dict[str, Extraction] | None = None,
+) -> tuple[HomeloreService, FixedClock]:
+    return _build(tmp_path, vectors, FakeExtractor(extractions))
+
+
+def make_failing_extraction_service(
     tmp_path: Path, vectors: dict[str, list[float]]
+) -> tuple[HomeloreService, FixedClock]:
+    return _build(tmp_path, vectors, FailingExtractor())
+
+
+def make_keyless_service(
+    tmp_path: Path, vectors: dict[str, list[float]]
+) -> tuple[HomeloreService, FixedClock]:
+    """A service configured as it is when ANTHROPIC_API_KEY is absent."""
+    return _build(tmp_path, vectors, None)
+
+
+def _build(
+    tmp_path: Path,
+    vectors: dict[str, list[float]],
+    extractor: FakeExtractor | FailingExtractor | None,
 ) -> tuple[HomeloreService, FixedClock]:
     clock = FixedClock()
     store = MemoryStore.open(tmp_path / "homelore.db")
-    return HomeloreService(store=store, embedder=FakeEmbedder(vectors), clock=clock), clock
+    service = HomeloreService(
+        store=store, embedder=FakeEmbedder(vectors), extractor=extractor, clock=clock
+    )
+    return service, clock
