@@ -68,6 +68,26 @@ class SpecialDate:
 
 
 @dataclass(frozen=True)
+class SupportedRelation:
+    """A relation together with the memories asserting it — the provenance a
+    reader needs to judge how fresh and trustworthy the claim is."""
+
+    relation: Relation
+    memories: tuple[Memory, ...]
+
+
+@dataclass(frozen=True)
+class Profile:
+    """Everything known about one entity: its alias-merged identity, its
+    relations each with supporting memories, and every memory mentioning it
+    (newest happening first)."""
+
+    entity: Entity
+    relations: tuple[SupportedRelation, ...]
+    memories: tuple[Memory, ...]
+
+
+@dataclass(frozen=True)
 class ExtractedEntity:
     """An entity as the extractor saw it: ``name`` should be the canonical name
     of an existing entity when the mention refers to one already known."""

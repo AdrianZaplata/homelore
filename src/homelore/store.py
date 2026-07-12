@@ -1,5 +1,6 @@
 import sqlite3
 from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
@@ -7,7 +8,14 @@ from typing import Self
 
 import sqlite_vec
 
-from homelore.domain import Entity, Extraction, Memory, Relation, SpecialDate
+from homelore.domain import (
+    Entity,
+    Extraction,
+    Memory,
+    Relation,
+    SpecialDate,
+    SupportedRelation,
+)
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS memories (
@@ -43,10 +51,40 @@ CREATE TABLE IF NOT EXISTS special_dates (
     year INTEGER,
     UNIQUE (memory_id, entity_id, label, month, day)
 );
+CREATE TABLE IF NOT EXISTS mentions (
+    memory_id INTEGER NOT NULL REFERENCES memories(id),
+    entity_id INTEGER NOT NULL REFERENCES entities(id),
+    UNIQUE (memory_id, entity_id)
+);
 CREATE TABLE IF NOT EXISTS extraction_retries (
     memory_id INTEGER PRIMARY KEY REFERENCES memories(id)
 );
 """
+
+# Memories extracted before the mentions table existed have relation and date
+# rows but no mention rows; rebuild what those imply so they stay reachable
+# through the graph. Idempotent, so it simply runs on every open.
+_BACKFILL_MENTIONS = """
+INSERT OR IGNORE INTO mentions (memory_id, entity_id)
+    SELECT memory_id, subject_id FROM relations
+    UNION SELECT memory_id, object_id FROM relations
+    UNION SELECT memory_id, entity_id FROM special_dates;
+"""
+
+
+_MEMORY_COLUMNS = (
+    "memories.id, memories.text, memories.author, memories.created_at, memories.event_date"
+)
+
+
+def _memory_from_row(row: tuple[int, str, str, str, str | None]) -> Memory:
+    return Memory(
+        id=row[0],
+        text=row[1],
+        author=row[2],
+        created_at=datetime.fromisoformat(row[3]),
+        event_date=date.fromisoformat(row[4]) if row[4] is not None else None,
+    )
 
 
 @dataclass(frozen=True)
@@ -64,6 +102,41 @@ class SearchHit:
     similarity: float
 
 
+class GraphIndex:
+    """The Graph Index loaded into memory for traversal: which entities each
+    memory mentions, and which entities relations connect.
+
+    Derived and disposable per ADR 0001; family-scale, so whole-graph loads
+    are cheap.
+    """
+
+    def __init__(
+        self,
+        mentions: Iterable[tuple[int, int]],
+        edges: Iterable[tuple[int, int]],
+    ) -> None:
+        self._entities_by_memory: dict[int, set[int]] = defaultdict(set)
+        self._memories_by_entity: dict[int, set[int]] = defaultdict(set)
+        self._neighbors: dict[int, set[int]] = defaultdict(set)
+        for memory_id, entity_id in mentions:
+            self._entities_by_memory[memory_id].add(entity_id)
+            self._memories_by_entity[entity_id].add(memory_id)
+        for subject_id, object_id in edges:
+            self._neighbors[subject_id].add(object_id)
+            self._neighbors[object_id].add(subject_id)
+
+    def connected_memories(self, memory_id: int) -> frozenset[int]:
+        """Other memories mentioning anything in this memory's entity
+        neighborhood — its entities plus everything one relation away."""
+        neighborhood = set(self._entities_by_memory.get(memory_id, ()))
+        for entity_id in tuple(neighborhood):
+            neighborhood |= self._neighbors.get(entity_id, set())
+        memories: set[int] = set()
+        for entity_id in neighborhood:
+            memories |= self._memories_by_entity.get(entity_id, set())
+        return frozenset(memories - {memory_id})
+
+
 class MemoryStore:
     """Append-only memory log with vector search, in a single SQLite file."""
 
@@ -78,6 +151,8 @@ class MemoryStore:
         sqlite_vec.load(connection)
         connection.enable_load_extension(False)
         connection.executescript(_SCHEMA)
+        with connection:
+            connection.execute(_BACKFILL_MENTIONS)
         return cls(connection)
 
     def add(
@@ -113,24 +188,12 @@ class MemoryStore:
         recall rerank exactly instead of guessing a candidate pool.
         """
         rows = self._connection.execute(
-            "SELECT id, text, author, created_at, event_date,"
+            f"SELECT {_MEMORY_COLUMNS},"
             " 1 - vec_distance_cosine(embedding, ?) AS similarity"
             " FROM memories ORDER BY similarity DESC",
             (sqlite_vec.serialize_float32(query_embedding),),
         ).fetchall()
-        return [
-            SearchHit(
-                memory=Memory(
-                    id=row[0],
-                    text=row[1],
-                    author=row[2],
-                    created_at=datetime.fromisoformat(row[3]),
-                    event_date=date.fromisoformat(row[4]) if row[4] is not None else None,
-                ),
-                similarity=row[5],
-            )
-            for row in rows
-        ]
+        return [SearchHit(memory=_memory_from_row(row), similarity=row[5]) for row in rows]
 
     def list_entities(self) -> list[Entity]:
         aliases: dict[int, list[str]] = defaultdict(list)
@@ -196,6 +259,11 @@ class MemoryStore:
                         year=extracted_date.year,
                     )
                 )
+            for entity_id in resolver.touched:
+                self._connection.execute(
+                    "INSERT OR IGNORE INTO mentions (memory_id, entity_id) VALUES (?, ?)",
+                    (memory_id, entity_id),
+                )
             self._connection.execute(
                 "DELETE FROM extraction_retries WHERE memory_id = ?", (memory_id,)
             )
@@ -204,6 +272,55 @@ class MemoryStore:
             entities=tuple(entities_by_id[entity_id] for entity_id in resolver.touched),
             relations=tuple(relations),
             special_dates=tuple(special_dates),
+        )
+
+    def find_entity(self, name: str) -> Entity | None:
+        """The entity ``name`` refers to, resolved with the exact same
+        name-and-alias matching that extraction resolves against."""
+        entity_id = _EntityResolver(self._connection).resolve(name)
+        if entity_id is None:
+            return None
+        return next(entity for entity in self.list_entities() if entity.id == entity_id)
+
+    def relations_about(self, entity_id: int) -> tuple[SupportedRelation, ...]:
+        """Every relation the entity takes part in, as subject or object, each
+        with the memories asserting it, in first-asserted order."""
+        names = {
+            row[0]: row[1] for row in self._connection.execute("SELECT id, name FROM entities")
+        }
+        rows = self._connection.execute(
+            f"SELECT relations.subject_id, relations.label, relations.object_id,"
+            f" {_MEMORY_COLUMNS}"
+            " FROM relations JOIN memories ON memories.id = relations.memory_id"
+            " WHERE ? IN (relations.subject_id, relations.object_id)"
+            " ORDER BY relations.rowid",
+            (entity_id,),
+        ).fetchall()
+        supporting: dict[Relation, list[Memory]] = {}
+        for row in rows:
+            relation = Relation(subject=names[row[0]], label=row[1], object=names[row[2]])
+            supporting.setdefault(relation, []).append(_memory_from_row(row[3:]))
+        return tuple(
+            SupportedRelation(relation=relation, memories=tuple(memories))
+            for relation, memories in supporting.items()
+        )
+
+    def memories_mentioning(self, entity_id: int) -> tuple[Memory, ...]:
+        """Memories that mention the entity, newest happening first."""
+        rows = self._connection.execute(
+            f"SELECT {_MEMORY_COLUMNS} FROM memories"
+            " JOIN mentions ON mentions.memory_id = memories.id"
+            " WHERE mentions.entity_id = ?",
+            (entity_id,),
+        ).fetchall()
+        memories = [_memory_from_row(row) for row in rows]
+        memories.sort(key=lambda memory: (memory.happened_on, memory.id), reverse=True)
+        return tuple(memories)
+
+    def load_graph(self) -> GraphIndex:
+        return GraphIndex(
+            mentions=self._connection.execute("SELECT memory_id, entity_id FROM mentions"),
+            edges=self._connection.execute("SELECT subject_id, object_id FROM relations"),
         )
 
     def mark_extraction_pending(self, memory_id: int) -> None:
@@ -229,14 +346,13 @@ class _EntityResolver:
         for entity_id, alias in connection.execute("SELECT entity_id, alias FROM entity_aliases"):
             self._ids_by_mention.setdefault(alias.casefold(), entity_id)
 
+    def resolve(self, mention: str) -> int | None:
+        return self._ids_by_mention.get(mention.casefold())
+
     def register(self, name: str, aliases: tuple[str, ...] = ()) -> int:
         mentions = [name, *aliases]
         entity_id = next(
-            (
-                self._ids_by_mention[mention.casefold()]
-                for mention in mentions
-                if mention.casefold() in self._ids_by_mention
-            ),
+            (found for mention in mentions if (found := self.resolve(mention)) is not None),
             None,
         )
         if entity_id is None:

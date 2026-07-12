@@ -3,7 +3,16 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
+from homelore.domain import Memory
 from homelore.service import HomeloreService
+
+
+def _memory_payload(memory: Memory) -> dict[str, Any]:
+    return {
+        "text": memory.text,
+        "date": memory.happened_on.isoformat(),
+        "author": memory.author,
+    }
 
 
 def build_server(service: HomeloreService) -> FastMCP:
@@ -42,13 +51,33 @@ def build_server(service: HomeloreService) -> FastMCP:
         with its text, the date it happened, and who recorded it — cite these
         when answering so the user can judge freshness.
         """
-        return [
-            {
-                "text": result.memory.text,
-                "date": result.memory.happened_on.isoformat(),
-                "author": result.memory.author,
-            }
-            for result in service.recall(query, limit=limit)
-        ]
+        return [_memory_payload(result.memory) for result in service.recall(query, limit=limit)]
+
+    @server.tool()
+    def profile(name: str) -> dict[str, Any]:  # pyright: ignore[reportUnusedFunction]
+        """Everything known about one person, place, or thing. Use for
+        "who is X?", "tell me about X", or catching up on someone. Accepts any
+        name or alias the family uses ("Ana", "my wife", "grandma"). Returns
+        their known names, their relationships, and the memories behind each
+        claim — cite dates and authors so the user can judge freshness.
+        """
+        result = service.profile(name)
+        if result is None:
+            return {"found": False, "note": f"Nothing is known yet about {name!r}."}
+        return {
+            "found": True,
+            "name": result.entity.name,
+            "aliases": list(result.entity.aliases),
+            "relations": [
+                {
+                    "subject": supported.relation.subject,
+                    "label": supported.relation.label,
+                    "object": supported.relation.object,
+                    "memories": [_memory_payload(memory) for memory in supported.memories],
+                }
+                for supported in result.relations
+            ],
+            "memories": [_memory_payload(memory) for memory in result.memories],
+        }
 
     return server
