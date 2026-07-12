@@ -4,6 +4,8 @@ Tests construct the real service with a real temp-file SQLite store; only the
 system boundaries (embedding model, extraction model, wall clock) are faked.
 """
 
+import re
+import zlib
 from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -14,6 +16,35 @@ from homelore.service import HomeloreService
 from homelore.store import MemoryStore
 
 NOW = datetime(2026, 7, 12, 10, 0, 0, tzinfo=UTC)
+
+
+class HashingEmbedder:
+    """Deterministic lexical embeddings: each content word hashes to a bucket,
+    so cosine similarity is word overlap. Makes retrieval over fixture-scale
+    corpora work keyless — good enough for exact-memory recall, with no
+    pretense of semantics. Function words are dropped: they would dominate
+    short questions and drown out the words that identify a memory."""
+
+    _DIMENSIONS = 4096
+    # fmt: off
+    _STOPWORDS = frozenset([
+        "a", "an", "and", "are", "at", "be", "been", "did", "do", "does", "for", "from",
+        "had", "has", "have", "he", "her", "his", "how", "i", "in", "is", "it", "its",
+        "me", "my", "no", "not", "now", "of", "on", "or", "our", "out", "she", "so",
+        "that", "the", "them", "they", "this", "to", "up", "us", "was", "we", "were",
+        "what", "when", "where", "who", "why", "with", "you", "your",
+    ])
+    # fmt: on
+
+    def embed(self, texts: Sequence[str]) -> list[list[float]]:
+        return [self._vector(text) for text in texts]
+
+    def _vector(self, text: str) -> list[float]:
+        vector = [0.0] * self._DIMENSIONS
+        for token in re.findall(r"[a-z0-9]+", text.lower()):
+            if token not in self._STOPWORDS:
+                vector[zlib.crc32(token.encode()) % self._DIMENSIONS] += 1.0
+        return vector
 
 
 class FakeEmbedder:

@@ -6,10 +6,10 @@ The fixtures must deliberately encode the hard cases the system claims to handle
 
 **Blocked by:** 04 — `upcoming_dates`; 05 — Communities + `reflect`; 06 — Bulk import + `reindex`.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Demo Family fixtures are readable, coherent, wholly fictional, and span supersession, aliases, multi-memory synthesis, year-boundary dates, and clusterable structure
-- [ ] ~50 golden Q/A pairs exist with expected answers/memories, covering `recall`, `profile`, `upcoming_dates`, and `reflect`
-- [ ] One command builds a runnable demo database from the fixtures via the import pipeline
-- [ ] No derived database or generated artifact is committed; the build is reproducible from fixtures
-- [ ] A subset of golden pairs with deterministic answers (dates, exact-memory recall) runs keyless against a fake-extracted fixture build in the unit suite
+- [x] Demo Family fixtures are readable, coherent, wholly fictional, and span supersession, aliases, multi-memory synthesis, year-boundary dates, and clusterable structure
+- [x] ~50 golden Q/A pairs exist with expected answers/memories, covering `recall`, `profile`, `upcoming_dates`, and `reflect`
+- [x] One command builds a runnable demo database from the fixtures via the import pipeline
+- [x] No derived database or generated artifact is committed; the build is reproducible from fixtures
+- [x] A subset of golden pairs with deterministic answers (dates, exact-memory recall) runs keyless against a fake-extracted fixture build in the unit suite

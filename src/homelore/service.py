@@ -33,7 +33,7 @@ _HOW_TO_SET_KEY = (
     " environment variable. Recalling existing memories keeps working without it."
 )
 
-_MISSING_KEY_MESSAGE = (
+MISSING_KEY_MESSAGE = (
     "ANTHROPIC_API_KEY is not set. Homelore needs it to understand new memories"
     " (extracting people, relationships, and dates)." + _HOW_TO_SET_KEY
 )
@@ -143,7 +143,7 @@ class HomeloreService:
 
     def _require_extractor(self) -> Extractor:
         if self._extractor is None:
-            raise MissingApiKeyError(_MISSING_KEY_MESSAGE)
+            raise MissingApiKeyError(MISSING_KEY_MESSAGE)
         return self._extractor
 
     def recall(self, query: str, limit: int = 5) -> list[RecalledMemory]:

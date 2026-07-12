@@ -1,0 +1,188 @@
+{
+  "Freya turned five today — pancake breakfast, candles on the pancakes by her decree. Born January 2nd, 2019, our little new-year surprise.": {
+    "entities": [{"name": "Freya", "aliases": []}],
+    "special_dates": [{"entity": "Freya", "label": "birthday", "month": 1, "day": 2, "year": 2019}]
+  },
+  "For the record: Maren and Espen were married on December 30th, 2012, and still argue about whether the string quartet was worth it.": {
+    "entities": [{"name": "Maren", "aliases": []}, {"name": "Espen", "aliases": []}],
+    "relations": [{"subject": "Maren", "label": "married_to", "object": "Espen"}],
+    "special_dates": [{"entity": "Maren", "label": "wedding anniversary", "month": 12, "day": 30, "year": 2012}]
+  },
+  "Otto swam his first full lap of the big pool at Saturday lessons. He was so proud he wore his goggles to dinner.": {
+    "entities": [{"name": "Otto", "aliases": []}]
+  },
+  "Freya is deep in a fox phase: fox books, fox drawings, a fox tail pinned to her coat.": {
+    "entities": [{"name": "Freya", "aliases": []}, {"name": "foxes", "aliases": []}],
+    "relations": [{"subject": "Freya", "label": "interested_in", "object": "foxes"}]
+  },
+  "Farmor Ingrid was born on February 29th, 1956 — a proper leap-day baby, and she will not let anyone move the celebration to March.": {
+    "entities": [{"name": "Ingrid", "aliases": ["Farmor"]}],
+    "special_dates": [{"entity": "Ingrid", "label": "birthday", "month": 2, "day": 29, "year": 1956}]
+  },
+  "Otto's birthday for the family file: June 21st, born 2015. Midsummer boy — he wants a pool party every single year.": {
+    "entities": [{"name": "Otto", "aliases": []}],
+    "special_dates": [{"entity": "Otto", "label": "birthday", "month": 6, "day": 21, "year": 2015}]
+  },
+  "Waffle graduated from puppy class, technically. The certificate says 'participation'. Freya framed it.": {
+    "entities": [{"name": "Waffle", "aliases": []}, {"name": "Freya", "aliases": []}]
+  },
+  "Otto turned nine. Pool party, obviously: six boys, one inflatable crocodile, zero dry towels left.": {
+    "entities": [{"name": "Otto", "aliases": []}]
+  },
+  "Drove the four hours to Tallhaven to see Ingrid. Her garden is glorious this summer; she sent us home with rhubarb and strict instructions for it.": {
+    "entities": [{"name": "Ingrid", "aliases": []}, {"name": "Tallhaven", "aliases": []}],
+    "relations": [{"subject": "Ingrid", "label": "lives_in", "object": "Tallhaven"}]
+  },
+  "First band practice in the new rehearsal room. Jonas brought his old tape delay, and Petra has already booked a slot at the Old Mill autumn open stage.": {
+    "entities": [{"name": "Jonas", "aliases": []}, {"name": "Petra", "aliases": []}, {"name": "Old Mill", "aliases": []}],
+    "relations": [{"subject": "Petra", "label": "bandmate_of", "object": "Jonas"}]
+  },
+  "Maren's birthday — September 14th, born 1986. She asked for beeswax candles and a quiet house, and got both. Barely.": {
+    "entities": [{"name": "Maren", "aliases": []}],
+    "special_dates": [{"entity": "Maren", "label": "birthday", "month": 9, "day": 14, "year": 1986}]
+  },
+  "Espen's birthday for the file: April 8th, 1984. He claims he doesn't want a fuss. He always wants a fuss.": {
+    "entities": [{"name": "Espen", "aliases": []}],
+    "special_dates": [{"entity": "Espen", "label": "birthday", "month": 4, "day": 8, "year": 1984}]
+  },
+  "A year ago on December 27th we brought Waffle home from the shelter, so December 27th is Waffle's gotcha day — a waffles-for-breakfast day forever.": {
+    "entities": [{"name": "Waffle", "aliases": []}],
+    "special_dates": [{"entity": "Waffle", "label": "gotcha day", "month": 12, "day": 27, "year": 2023}]
+  },
+  "Freya's kindergarten winter concert: she was a snowflake and sang the loudest by a distance. Her teacher Sara says she's the bravest in the singing circle.": {
+    "entities": [{"name": "Freya", "aliases": []}, {"name": "Sara", "aliases": []}],
+    "relations": [{"subject": "Sara", "label": "teacher_of", "object": "Freya"}]
+  },
+  "New Year's Eve with a five-going-on-six-year-old: Freya made it to half past nine, which she insists counts as midnight somewhere.": {
+    "entities": [{"name": "Freya", "aliases": []}]
+  },
+  "Freya turned six. Fox cake by request — though she spent most of the party explaining velociraptors to Ingrid, so the fox era may be ending.": {
+    "entities": [{"name": "Freya", "aliases": []}, {"name": "Ingrid", "aliases": []}]
+  },
+  "Otto has decided he is a backstroke specialist, because 'you can breathe the whole time'. Hard to argue with.": {
+    "entities": [{"name": "Otto", "aliases": []}]
+  },
+  "Freya finally outgrew her boots — she is in size 28 shoes now.": {
+    "entities": [{"name": "Freya", "aliases": []}]
+  },
+  "Otto joined the Dolphins swim club. Coach Ruth says his freestyle is raw but his kick is the strongest in the group.": {
+    "entities": [{"name": "Otto", "aliases": []}, {"name": "Dolphins", "aliases": []}, {"name": "Ruth", "aliases": ["Coach Ruth"]}],
+    "relations": [{"subject": "Otto", "label": "member_of", "object": "Dolphins"}, {"subject": "Ruth", "label": "coaches", "object": "Otto"}]
+  },
+  "Easter at Tallhaven: Ingrid hid forty-two eggs and forgot where eleven went. Waffle found nine of them.": {
+    "entities": [{"name": "Ingrid", "aliases": []}, {"name": "Tallhaven", "aliases": []}, {"name": "Waffle", "aliases": []}]
+  },
+  "Otto's goggles saga continues: third pair this season. Ruth suggested the strapless kind; Otto countered with a helmet.": {
+    "entities": [{"name": "Otto", "aliases": []}, {"name": "Ruth", "aliases": []}]
+  },
+  "Maren started beekeeping — two hives at the bottom of the garden. The bees, she reports, are calmer than she is.": {
+    "entities": [{"name": "Maren", "aliases": []}, {"name": "beekeeping", "aliases": []}],
+    "relations": [{"subject": "Maren", "label": "interested_in", "object": "beekeeping"}]
+  },
+  "My wife now owns more protective equipment than a hockey goalie. The bees remain unimpressed.": {
+    "entities": [{"name": "Maren", "aliases": ["my wife"]}, {"name": "beekeeping", "aliases": []}]
+  },
+  "Otto turned ten — double digits. He asked for a swim-meet-themed cake and got Coach Ruth to sign his kickboard.": {
+    "entities": [{"name": "Otto", "aliases": []}, {"name": "Ruth", "aliases": ["Coach Ruth"]}]
+  },
+  "School's out, and Sara is retiring from the kindergarten after thirty years. Freya gave her a farewell drawing of the two of them as foxes.": {
+    "entities": [{"name": "Sara", "aliases": []}, {"name": "Freya", "aliases": []}]
+  },
+  "Ingrid's hip surgery went well. She is grumbling at the physiotherapist, which the nurses say is an excellent sign.": {
+    "entities": [{"name": "Ingrid", "aliases": []}]
+  },
+  "Maren's first honey harvest came in: four jars. Freya designed the labels — a bee wearing a fox mask, naturally.": {
+    "entities": [{"name": "Maren", "aliases": []}, {"name": "Freya", "aliases": []}, {"name": "beekeeping", "aliases": []}]
+  },
+  "Freya started school today! Room 2 with Mr. Bakke. She informed him on day one that his dinosaur poster was 'anatomically wrong'.": {
+    "entities": [{"name": "Freya", "aliases": []}, {"name": "Mr. Bakke", "aliases": []}],
+    "relations": [{"subject": "Mr. Bakke", "label": "teacher_of", "object": "Freya"}]
+  },
+  "Freya has officially moved on from foxes: it is dinosaurs now, full time. She corrected the museum guide about spinosaurus sails.": {
+    "entities": [{"name": "Freya", "aliases": []}, {"name": "dinosaurs", "aliases": []}],
+    "relations": [{"subject": "Freya", "label": "interested_in", "object": "dinosaurs"}]
+  },
+  "Old Mill open stage went brilliantly — Petra's new song earned an encore and Jonas only broke one string.": {
+    "entities": [{"name": "Petra", "aliases": []}, {"name": "Jonas", "aliases": []}, {"name": "Old Mill", "aliases": []}]
+  },
+  "Otto's first swim meet with the Dolphins: third in backstroke! Ruth says regionals in spring are realistic if he keeps this up.": {
+    "entities": [{"name": "Otto", "aliases": []}, {"name": "Dolphins", "aliases": []}, {"name": "Ruth", "aliases": []}]
+  },
+  "Freya's best friends this year are Liv and Noor. Important: Noor has a serious nut allergy, so nothing with nuts when she visits.": {
+    "entities": [{"name": "Freya", "aliases": []}, {"name": "Liv", "aliases": []}, {"name": "Noor", "aliases": []}, {"name": "nuts", "aliases": []}],
+    "relations": [{"subject": "Liv", "label": "friend_of", "object": "Freya"}, {"subject": "Noor", "label": "friend_of", "object": "Freya"}, {"subject": "Noor", "label": "allergic_to", "object": "nuts"}]
+  },
+  "Shoe update: Freya is in size 30 now. The size 28s lasted exactly nine months.": {
+    "entities": [{"name": "Freya", "aliases": []}]
+  },
+  "Elm Street planting weekend: Signe organized bulbs for the whole street and Tomas lent everyone his rototiller. Six hundred tulips went in before the frost.": {
+    "entities": [{"name": "Signe", "aliases": []}, {"name": "Tomas", "aliases": []}, {"name": "Elm Street", "aliases": []}],
+    "relations": [{"subject": "Signe", "label": "neighbor_on", "object": "Elm Street"}, {"subject": "Tomas", "label": "neighbor_on", "object": "Elm Street"}]
+  },
+  "Freya's school winter concert: she was a triceratops in the recycling pageant. Mr. Bakke swore the costumes were waterproof. They were not.": {
+    "entities": [{"name": "Freya", "aliases": []}, {"name": "Mr. Bakke", "aliases": []}]
+  },
+  "Waffle's second gotcha day. Waffles for breakfast; the dog got scrambled eggs and a new squeaky pheasant.": {
+    "entities": [{"name": "Waffle", "aliases": []}]
+  },
+  "Thirteen years married. We left the kids with Ingrid and had dinner at the harbor. Maren still will not concede the string-quartet argument.": {
+    "entities": [{"name": "Maren", "aliases": []}, {"name": "Ingrid", "aliases": []}]
+  },
+  "Freya turned seven! Dinosaur park trip with Liv and Noor, and Ingrid baked a nut-free brachiosaurus cake so Noor could have seconds.": {
+    "entities": [{"name": "Freya", "aliases": []}, {"name": "Liv", "aliases": []}, {"name": "Noor", "aliases": []}, {"name": "Ingrid", "aliases": []}]
+  },
+  "Otto qualified for the spring regionals in backstroke. Ruth is moving him up to the Tuesday-and-Thursday training group.": {
+    "entities": [{"name": "Otto", "aliases": []}, {"name": "Ruth", "aliases": []}]
+  },
+  "Band news: the band finally has a name — Northern Sparrows. Petra vetoed every other option, and honestly she was right.": {
+    "entities": [{"name": "Northern Sparrows", "aliases": []}, {"name": "Petra", "aliases": []}],
+    "relations": [{"subject": "Petra", "label": "member_of", "object": "Northern Sparrows"}]
+  },
+  "Espen wrote me a song for Valentine's Day and swears it will never be performed in public. Good.": {
+    "entities": [{"name": "Espen", "aliases": []}]
+  },
+  "Celebrated Farmor Ingrid's birthday tonight, since there is no February 29th this year. Seventy years old — or seventeen and a half, by her own counting.": {
+    "entities": [{"name": "Ingrid", "aliases": ["Farmor"]}]
+  },
+  "Big news: Ingrid sold the Tallhaven house and moved into the little apartment on Rosevik Square, ten minutes from us. No more four-hour drives.": {
+    "entities": [{"name": "Ingrid", "aliases": []}, {"name": "Tallhaven", "aliases": []}, {"name": "Rosevik Square", "aliases": []}],
+    "relations": [{"subject": "Ingrid", "label": "lives_in", "object": "Rosevik Square"}]
+  },
+  "Otto's regionals: second in 50m backstroke, four full seconds off his time. Ruth cried. Otto pretended not to notice.": {
+    "entities": [{"name": "Otto", "aliases": []}, {"name": "Ruth", "aliases": []}]
+  },
+  "Ingrid says the thing she misses most from Tallhaven is her garden. She keeps eyeing the empty planter boxes outside her building on Rosevik Square.": {
+    "entities": [{"name": "Ingrid", "aliases": []}, {"name": "Tallhaven", "aliases": []}, {"name": "Rosevik Square", "aliases": []}]
+  },
+  "Second spring with the bees: Maren added a third hive. Otto helped with the smoker and only ran away twice.": {
+    "entities": [{"name": "Maren", "aliases": []}, {"name": "Otto", "aliases": []}, {"name": "beekeeping", "aliases": []}]
+  },
+  "Northern Sparrows are booked for the midsummer festival at the Old Mill — a full two-hour set. Jonas is already worrying about heat and his pedalboard.": {
+    "entities": [{"name": "Northern Sparrows", "aliases": []}, {"name": "Old Mill", "aliases": []}, {"name": "Jonas", "aliases": []}],
+    "relations": [{"subject": "Jonas", "label": "member_of", "object": "Northern Sparrows"}]
+  },
+  "Frey lost her first tooth mid-sentence while explaining ankylosaurus armor to Mr. Bakke. She was thrilled about both things.": {
+    "entities": [{"name": "Freya", "aliases": ["Frey"]}, {"name": "Mr. Bakke", "aliases": []}]
+  },
+  "Noor's mom taught me her nut-free brownie recipe, which makes parties much easier. Freya quality-tested six of them.": {
+    "entities": [{"name": "Noor", "aliases": []}, {"name": "Freya", "aliases": []}]
+  },
+  "Shoe update: Freya jumped straight to size 31 shoes. Growth spurt confirmed — four centimeters since December, says the pediatrician.": {
+    "entities": [{"name": "Freya", "aliases": []}]
+  },
+  "Otto turned eleven. Pool party number seven, except this year the whole Dolphins group came and Ruth judged the cannonball contest.": {
+    "entities": [{"name": "Otto", "aliases": []}, {"name": "Dolphins", "aliases": []}, {"name": "Ruth", "aliases": []}]
+  },
+  "Signe's six hundred tulips came up all along Elm Street this spring, so the street voted for a June planting weekend too. Tomas reports the rototiller has never been happier.": {
+    "entities": [{"name": "Signe", "aliases": []}, {"name": "Tomas", "aliases": []}, {"name": "Elm Street", "aliases": []}]
+  },
+  "Ingrid has claimed the two big planter boxes outside her building. We are smuggling her old Tallhaven roses over this weekend.": {
+    "entities": [{"name": "Ingrid", "aliases": []}, {"name": "Tallhaven", "aliases": []}]
+  },
+  "Freya wants a dinosaur dig birthday next January: sandpit, buried plaster 'fossils', the works. Liv and Noor are already invited — nut-free everything, as usual.": {
+    "entities": [{"name": "Freya", "aliases": []}, {"name": "Liv", "aliases": []}, {"name": "Noor", "aliases": []}]
+  },
+  "Waffle turns out to be terrified of bees, which is awkward for a dog who lives ten meters from three hives. He now patrols only the far half of the garden.": {
+    "entities": [{"name": "Waffle", "aliases": []}, {"name": "beekeeping", "aliases": []}]
+  }
+}
