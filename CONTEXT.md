@@ -5,7 +5,7 @@ Glossary of domain terms. Implementation details do not belong here.
 ## Terms
 
 ### Memory
-The canonical unit of stored knowledge: a free-text note with a timestamp and an author. Memories are the source of truth — everything else in the system can be rebuilt from them. A memory is never destructively rewritten by the system; newer memories supersede older ones at retrieval time.
+The canonical unit of stored knowledge: a free-text note with a timestamp and an author. A memory about a past event may additionally carry an event date — the date it happened, as opposed to when it was recorded — and the event date is what anchors the memory in time. Memories are the source of truth — everything else in the system can be rebuilt from them. A memory is never destructively rewritten by the system; newer memories supersede older ones at retrieval time.
 
 ### Entity
 A person, place, thing, or concept mentioned in memories (e.g. a family member, a hobby, a location). Entities are *extracted* from memories by the system, never hand-modeled. An entity's identity spans aliases ("Ana", "my wife" → the same entity).

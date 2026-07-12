@@ -1,0 +1,44 @@
+[project]
+name = "homelore"
+version = "0.1.0"
+description = "Self-hosted family memory for the assistant you already use, over MCP"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+dependencies = [
+    "fastembed>=0.7",
+    "mcp>=1.9",
+    "platformdirs>=4",
+    "sqlite-vec>=0.1.6",
+]
+
+[project.scripts]
+homelore = "homelore.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.11,<0.12"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1",
+    "pytest>=8",
+    "ruff>=0.12",
+]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.pyright]
+include = ["src", "tests"]
+stubPath = "stubs"
+typeCheckingMode = "strict"
+pythonVersion = "3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
