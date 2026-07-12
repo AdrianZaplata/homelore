@@ -6,10 +6,10 @@ The tool works keyless (it reads a derived index; no extraction involved) and us
 
 **Blocked by:** 02 — Inline extraction on write.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `upcoming_dates` returns every SpecialDate in the requested window — exact query, no vector search anywhere in the path
-- [ ] Recurrence expands correctly across year boundaries (e.g. a January birthday queried in December)
-- [ ] Results include the person/entity, occasion label, date of next occurrence, and age/years count where applicable
-- [ ] Works with no API key set
-- [ ] Service-seam tests cover window edges, same-day occurrences, year-boundary recurrence, and age computation via the injected clock
+- [x] `upcoming_dates` returns every SpecialDate in the requested window — exact query, no vector search anywhere in the path
+- [x] Recurrence expands correctly across year boundaries (e.g. a January birthday queried in December)
+- [x] Results include the person/entity, occasion label, date of next occurrence, and age/years count where applicable
+- [x] Works with no API key set
+- [x] Service-seam tests cover window edges, same-day occurrences, year-boundary recurrence, and age computation via the injected clock
