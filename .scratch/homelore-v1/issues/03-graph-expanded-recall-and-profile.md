@@ -6,10 +6,10 @@ A new `profile` MCP tool answers "who is X?": given any alias, return the entity
 
 **Blocked by:** 02 — Inline extraction on write.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `recall` retrieves relevant memories that pure vector search misses when the connection is relational (graph expansion demonstrably adds recall)
-- [ ] Superseded facts rank below their successors; the current value wins for "what is X's Y?" questions
-- [ ] `profile` accepts any alias and returns the merged entity with relations and supporting memories with provenance
-- [ ] `profile` is exposed over MCP with a description that routes "who is…" questions to it
-- [ ] Service-seam tests cover graph expansion, supersession, and alias-merged profiles with fake extractor/embedder
+- [x] `recall` retrieves relevant memories that pure vector search misses when the connection is relational (graph expansion demonstrably adds recall)
+- [x] Superseded facts rank below their successors; the current value wins for "what is X's Y?" questions
+- [x] `profile` accepts any alias and returns the merged entity with relations and supporting memories with provenance
+- [x] `profile` is exposed over MCP with a description that routes "who is…" questions to it
+- [x] Service-seam tests cover graph expansion, supersession, and alias-merged profiles with fake extractor/embedder
