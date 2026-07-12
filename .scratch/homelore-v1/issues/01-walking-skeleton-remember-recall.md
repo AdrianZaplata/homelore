@@ -8,11 +8,11 @@ Includes: uv-managed package (`homelore`), ruff + pyright strict + pytest, the k
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `remember` persists a Memory with timestamp, author, and optional event date; `recall` returns relevant memories with provenance, ranked by similarity with recency awareness
-- [ ] Both tools are exposed over MCP stdio and registered with sane schemas (smoke test)
-- [ ] Embeddings are computed locally; the whole flow works with no API key set
-- [ ] All data lives in one SQLite file at a configurable path with a sensible per-user default
-- [ ] Service-seam tests pass with fake embedder + injected clock + real temp SQLite; no storage mocking, no assertions on internals
-- [ ] Keyless CI workflow runs lint, typecheck, and tests green
+- [x] `remember` persists a Memory with timestamp, author, and optional event date; `recall` returns relevant memories with provenance, ranked by similarity with recency awareness
+- [x] Both tools are exposed over MCP stdio and registered with sane schemas (smoke test)
+- [x] Embeddings are computed locally; the whole flow works with no API key set
+- [x] All data lives in one SQLite file at a configurable path with a sensible per-user default
+- [x] Service-seam tests pass with fake embedder + injected clock + real temp SQLite; no storage mocking, no assertions on internals
+- [x] Keyless CI workflow runs lint, typecheck, and tests green
