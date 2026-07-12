@@ -54,6 +54,25 @@ def build_server(service: HomeloreService) -> FastMCP:
         return [_memory_payload(result.memory) for result in service.recall(query, limit=limit)]
 
     @server.tool()
+    def upcoming_dates(days: int = 30) -> list[dict[str, Any]]:  # pyright: ignore[reportUnusedFunction]
+        """What family dates are coming up: birthdays, anniversaries, and other
+        special dates from today through `days` days out (inclusive), soonest
+        first. The answer is exact and complete — always use this for date
+        questions ("any birthdays soon?"), never recall. `years` is the age
+        being turned or the anniversary number, present when the first year is
+        known.
+        """
+        return [
+            {
+                "entity": upcoming.entity,
+                "occasion": upcoming.label,
+                "date": upcoming.occurs_on.isoformat(),
+                **({"years": upcoming.years} if upcoming.years is not None else {}),
+            }
+            for upcoming in service.upcoming_dates(days=days)
+        ]
+
+    @server.tool()
     def profile(name: str) -> dict[str, Any]:  # pyright: ignore[reportUnusedFunction]
         """Everything known about one person, place, or thing. Use for
         "who is X?", "tell me about X", or catching up on someone. Accepts any

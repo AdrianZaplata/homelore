@@ -1,7 +1,8 @@
+import calendar
 import logging
-from datetime import date
+from datetime import date, timedelta
 
-from homelore.domain import Profile, RecalledMemory, RememberResult
+from homelore.domain import Profile, RecalledMemory, RememberResult, SpecialDate, UpcomingDate
 from homelore.ports import Clock, Embedder, Extractor
 from homelore.store import MemoryStore, SearchHit
 
@@ -104,6 +105,25 @@ class HomeloreService:
             memories=self._store.memories_mentioning(entity.id),
         )
 
+    def upcoming_dates(self, days: int = 30) -> list[UpcomingDate]:
+        """Every special-date occurrence from today through ``days`` days out,
+        soonest first — an exact query over the derived date index, so the
+        answer is complete, never a retrieval guess."""
+        today = self._clock().date()
+        end = today + timedelta(days=days)
+        upcoming = [
+            UpcomingDate(
+                entity=special.entity,
+                label=special.label,
+                occurs_on=occurs_on,
+                years=occurs_on.year - special.year if special.year is not None else None,
+            )
+            for special in self._store.list_special_dates()
+            for occurs_on in _occurrences(special, today, end)
+        ]
+        upcoming.sort(key=lambda u: (u.occurs_on, u.entity, u.label))
+        return upcoming
+
     def _graph_support(self, seeds: list[SearchHit]) -> dict[int, float]:
         """How strongly the graph ties each memory to the query: the best
         similarity among seed hits whose entity neighborhood the memory
@@ -125,3 +145,18 @@ class HomeloreService:
         age_days = max((today - hit.memory.happened_on).days, 0)
         recency = 0.5 ** (age_days / _RECENCY_HALF_LIFE_DAYS)
         return hit.similarity + _GRAPH_WEIGHT * support + _RECENCY_WEIGHT * recency
+
+
+def _occurrences(special: SpecialDate, start: date, end: date) -> list[date]:
+    """The recurring date's occurrences within [start, end], in any year the
+    window touches. A Feb 29 date falls on Feb 28 in non-leap years; any other
+    impossible month/day is bad extracted data and raises."""
+    occurrences: list[date] = []
+    for year in range(start.year, end.year + 1):
+        if (special.month, special.day) == (2, 29) and not calendar.isleap(year):
+            occurs_on = date(year, 2, 28)
+        else:
+            occurs_on = date(year, special.month, special.day)
+        if start <= occurs_on <= end:
+            occurrences.append(occurs_on)
+    return occurrences

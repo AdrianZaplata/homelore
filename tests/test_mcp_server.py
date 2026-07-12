@@ -17,7 +17,7 @@ def test_tools_register_with_sane_schemas(tmp_path: Path) -> None:
 
     tools = {tool.name: tool for tool in asyncio.run(server.list_tools())}
 
-    assert set(tools) == {"remember", "recall", "profile"}
+    assert set(tools) == {"remember", "recall", "profile", "upcoming_dates"}
     assert all(tool.description for tool in tools.values())
 
     remember_schema = tools["remember"].inputSchema
@@ -33,3 +33,10 @@ def test_tools_register_with_sane_schemas(tmp_path: Path) -> None:
     # The client model routes on descriptions; "who is" must lead here.
     assert profile.description is not None
     assert "who is" in profile.description.lower()
+
+    upcoming = tools["upcoming_dates"]
+    assert "days" in upcoming.inputSchema["properties"]
+    assert upcoming.inputSchema.get("required", []) == []
+    # Date questions must route here, never to recall.
+    assert upcoming.description is not None
+    assert "coming up" in upcoming.description.lower()

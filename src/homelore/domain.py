@@ -68,6 +68,20 @@ class SpecialDate:
 
 
 @dataclass(frozen=True)
+class UpcomingDate:
+    """One occurrence of a SpecialDate falling in a queried window.
+
+    ``years`` is the age turned or the anniversary number, when the
+    first-occurrence year is known.
+    """
+
+    entity: str
+    label: str
+    occurs_on: date
+    years: int | None = None
+
+
+@dataclass(frozen=True)
 class SupportedRelation:
     """A relation together with the memories asserting it — the provenance a
     reader needs to judge how fresh and trustworthy the claim is."""

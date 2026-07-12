@@ -317,6 +317,22 @@ class MemoryStore:
         memories.sort(key=lambda memory: (memory.happened_on, memory.id), reverse=True)
         return tuple(memories)
 
+    def list_special_dates(self) -> tuple[SpecialDate, ...]:
+        """The deterministic date index: every special date, deduplicated
+        across the memories asserting it, in no particular order. A year known
+        to any memory is kept; should memories disagree, the greatest wins."""
+        rows = self._connection.execute(
+            "SELECT entities.name, special_dates.label, special_dates.month,"
+            " special_dates.day, MAX(special_dates.year)"
+            " FROM special_dates JOIN entities ON entities.id = special_dates.entity_id"
+            " GROUP BY special_dates.entity_id, special_dates.label,"
+            " special_dates.month, special_dates.day"
+        ).fetchall()
+        return tuple(
+            SpecialDate(entity=row[0], label=row[1], month=row[2], day=row[3], year=row[4])
+            for row in rows
+        )
+
     def load_graph(self) -> GraphIndex:
         return GraphIndex(
             mentions=self._connection.execute("SELECT memory_id, entity_id FROM mentions"),
