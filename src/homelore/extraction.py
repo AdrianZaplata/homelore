@@ -35,17 +35,21 @@ forms as aliases, and record a kinship or title word the family uses on its own 
 ("Farmor") as another alias.
 - relations: labeled connections between two extracted or known entities. Labels are \
 free-form snake_case strings chosen to fit the memory (e.g. interested_in, attends, \
-parent_of) — there is no fixed vocabulary.
+parent_of) — there is no fixed vocabulary. Record the connections a reader of each \
+person's profile would expect to find there: where they live, what they are into, what \
+they belong to, who they know.
 - special_dates: dates the family will mark every year, each tied to a person, pet, or \
 place the family knows: birthdays, wedding anniversaries, a pet's gotcha day. Label each \
 the way the family says it ("birthday", "wedding anniversary", "gotcha day"). A shared \
 date belongs to each person it is about — a wedding anniversary is one entry per spouse. \
 Set month and day only when the note states them or they follow from the note's own \
 dates; when an event is never pinned to a month and day, return null for both and the \
-entry will be dropped rather than guessed. Set year to the first occurrence's year when \
-stated or computable (a birth year, the wedding's year), else null. Public holidays \
-(Valentine's Day, New Year's Eve) and one-off events that merely happened on some date \
-are not special dates.
+entry will be dropped rather than guessed. Set year to the year the occasion first \
+happened — the birth, the wedding, the day the pet came home — when stated or computable, \
+else null; mind the arithmetic on ordinals: a "second gotcha day" in a note written in \
+2025 means the pet came home in 2023. Public \
+holidays (Valentine's Day, New Year's Eve) and one-off events or milestones that merely \
+happened on some date (a lost tooth, a race won) are not special dates.
 
 Extract what the text states or clearly implies; empty lists are fine. Never guess \
 names, dates, or years the note does not support.
