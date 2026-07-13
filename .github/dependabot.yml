@@ -1,0 +1,12 @@
+# Automated dependency updates: Python deps (uv lockfile) and the actions
+# our workflows pin. Weekly, so update PRs arrive in batches, not a trickle.
+version: 2
+updates:
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

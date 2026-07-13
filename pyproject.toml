@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Self-hosted family memory for the assistant you already use, over MCP"
 readme = "README.md"
 license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
 dependencies = [
     "anthropic>=0.116.0",
@@ -12,6 +13,10 @@ dependencies = [
     "platformdirs>=4",
     "sqlite-vec>=0.1.6",
 ]
+
+[project.urls]
+Repository = "https://github.com/AdrianZaplata/homelore"
+Changelog = "https://github.com/AdrianZaplata/homelore/blob/main/CHANGELOG.md"
 
 [project.scripts]
 homelore = "homelore.cli:main"
