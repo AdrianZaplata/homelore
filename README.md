@@ -21,7 +21,8 @@ SQLite file you own.
 
 ## Quickstart
 
-You need [uv](https://docs.astral.sh/uv/) and one API key
+You need [uv](https://docs.astral.sh/uv/getting-started/installation/)
+(`curl -LsSf https://astral.sh/uv/install.sh | sh`) and one API key
 ([Anthropic](https://console.anthropic.com/), used only to understand new
 memories — see [Privacy](#privacy)). Homelore runs anywhere `uvx` runs; no
 install step needed.
@@ -33,7 +34,7 @@ claude mcp add homelore --scope user -- uvx homelore serve
 ```
 
 **Claude Desktop** (or any MCP client that takes a JSON config) — add to
-`claude_desktop_config.json`:
+`claude_desktop_config.json` (Settings → Developer → Edit Config):
 
 ```json
 {
@@ -102,8 +103,8 @@ across your whole history and grounded in the actual memories:
 
 > **You:** What themes keep coming up with the kids this year?
 > **Assistant:** Water, mostly — Otto's swim club took off, from first lap
-> to a regionals medal. And Freya's fox phase turned into a general animal
-> obsession once Waffle arrived…
+> to a regionals medal. And Freya's fox era has officially given way to
+> dinosaurs, full time…
 
 ## How it's built
 

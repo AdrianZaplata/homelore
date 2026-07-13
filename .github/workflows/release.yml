@@ -2,6 +2,10 @@
 # version tag is pushed. Tag with `git tag vX.Y.Z && git push --tags` after
 # bumping pyproject.toml; the guard step keeps a mistyped tag from shipping a
 # mislabeled package.
+#
+# One-time setup before the first tag: create a "pypi" environment in the
+# GitHub repo settings, and register this repo + workflow + environment as a
+# trusted publisher for the "homelore" project on pypi.org.
 name: Release
 
 on:
@@ -13,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
+      contents: read
       id-token: write
     steps:
       - uses: actions/checkout@v4
