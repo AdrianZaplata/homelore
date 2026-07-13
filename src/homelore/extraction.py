@@ -10,26 +10,45 @@ from homelore.domain import (
     ExtractedRelation,
     ExtractedSpecialDate,
     Extraction,
+    Memory,
+    Relation,
 )
 
 MODEL = "claude-haiku-4-5"
 
 _SYSTEM = """\
-You extract structured family knowledge from one memory note written by a family member.
+You extract structured family knowledge from one memory note written by a family member. \
+The note's header says who wrote it and when — use both: the author grounds first-person \
+mentions ("my wife", written by Espen, is whoever the known relations say Espen is married \
+to), and the dates ground relative references ("a year ago on December 27th", "turned \
+seven today").
 
 Return:
 - entities: the people, places, things, or concepts the memory is about. Resolve every \
-mention against the known-entities list: if a mention refers to a known entity (by its \
-canonical name or any alias, e.g. "my wife" when Ana is known to be the wife), use that \
-entity's canonical name as `name` and record the mention under `aliases`. Only introduce \
-a new entity when the mention matches nothing known.
+mention against the known entities and relations: a mention that refers to a known entity \
+— by canonical name, by alias, or through the author and a known relation — is that \
+entity. Use its canonical name as `name` and record this memory's differing mentions \
+under `aliases`. Only introduce a new entity when the mention matches nothing known.
+  A new entity's canonical name is the shortest name that identifies it by itself: \
+"Ruth", not "Coach Ruth"; "Dolphins", not "the Dolphins swim club". Record the longer \
+forms as aliases, and record a kinship or title word the family uses on its own \
+("Farmor") as another alias.
 - relations: labeled connections between two extracted or known entities. Labels are \
 free-form snake_case strings chosen to fit the memory (e.g. interested_in, attends, \
 parent_of) — there is no fixed vocabulary.
-- special_dates: recurring dates tied to an entity (birthday, anniversary, school event) \
-with month and day, plus the year of first occurrence when stated (e.g. birth year).
+- special_dates: dates the family will mark every year, each tied to a person, pet, or \
+place the family knows: birthdays, wedding anniversaries, a pet's gotcha day. Label each \
+the way the family says it ("birthday", "wedding anniversary", "gotcha day"). A shared \
+date belongs to each person it is about — a wedding anniversary is one entry per spouse. \
+Set month and day only when the note states them or they follow from the note's own \
+dates; when an event is never pinned to a month and day, return null for both and the \
+entry will be dropped rather than guessed. Set year to the first occurrence's year when \
+stated or computable (a birth year, the wedding's year), else null. Public holidays \
+(Valentine's Day, New Year's Eve) and one-off events that merely happened on some date \
+are not special dates.
 
-Extract only what the text supports; empty lists are fine. Never invent dates or people.
+Extract what the text states or clearly implies; empty lists are fine. Never guess \
+names, dates, or years the note does not support.
 """
 
 _OUTPUT_SCHEMA: dict[str, Any] = {
@@ -67,8 +86,8 @@ _OUTPUT_SCHEMA: dict[str, Any] = {
                 "properties": {
                     "entity": {"type": "string"},
                     "label": {"type": "string"},
-                    "month": {"type": "integer"},
-                    "day": {"type": "integer"},
+                    "month": {"type": ["integer", "null"]},
+                    "day": {"type": ["integer", "null"]},
                     "year": {"type": ["integer", "null"]},
                 },
                 "required": ["entity", "label", "month", "day", "year"],
@@ -82,7 +101,12 @@ _OUTPUT_SCHEMA: dict[str, Any] = {
 
 
 class ClaudeExtractor:
-    """Extraction against Claude Haiku 4.5 with schema-constrained JSON output.
+    """Extraction against Claude Haiku 4.5 with schema-constrained JSON output,
+    at temperature 0 so repeated builds extract the same facts.
+
+    A special date the model could not pin to a month and day arrives with
+    nulls (the schema allows it exactly so the model never has to invent a
+    date) and is dropped here.
 
     Errors (API failures, refusals, malformed output) propagate — the service
     treats any failure as retryable, never as data loss.
@@ -91,13 +115,21 @@ class ClaudeExtractor:
     def __init__(self) -> None:
         self._client = anthropic.Anthropic()
 
-    def extract(self, text: str, known_entities: Sequence[Entity]) -> Extraction:
+    def extract(
+        self,
+        memory: Memory,
+        known_entities: Sequence[Entity],
+        known_relations: Sequence[Relation],
+    ) -> Extraction:
         response = self._client.messages.create(
             model=MODEL,
             max_tokens=2048,
+            temperature=0.0,
             system=_SYSTEM,
             output_config={"format": {"type": "json_schema", "schema": _OUTPUT_SCHEMA}},
-            messages=[{"role": "user", "content": _prompt(text, known_entities)}],
+            messages=[
+                {"role": "user", "content": _prompt(memory, known_entities, known_relations)}
+            ],
         )
         raw = next(block.text for block in response.content if block.type == "text")
         data = json.loads(raw)
@@ -123,11 +155,14 @@ class ClaudeExtractor:
                     year=special_date["year"],
                 )
                 for special_date in data["special_dates"]
+                if special_date["month"] is not None and special_date["day"] is not None
             ),
         )
 
 
-def _prompt(text: str, known_entities: Sequence[Entity]) -> str:
+def _prompt(
+    memory: Memory, known_entities: Sequence[Entity], known_relations: Sequence[Relation]
+) -> str:
     if known_entities:
         lines = "\n".join(
             f"- {entity.name}"
@@ -137,4 +172,15 @@ def _prompt(text: str, known_entities: Sequence[Entity]) -> str:
         known = f"Known entities:\n{lines}"
     else:
         known = "Known entities: none yet."
-    return f"{known}\n\nMemory:\n{text}"
+    if known_relations:
+        lines = "\n".join(
+            f"- {relation.subject} {relation.label} {relation.object}"
+            for relation in known_relations
+        )
+        known += f"\n\nKnown relations:\n{lines}"
+    else:
+        known += "\n\nKnown relations: none yet."
+    header = f"Memory, written by {memory.author} on {memory.created_at.date().isoformat()}"
+    if memory.event_date is not None:
+        header += f", about events of {memory.event_date.isoformat()}"
+    return f"{known}\n\n{header}:\n{memory.text}"

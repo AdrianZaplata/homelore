@@ -6,7 +6,7 @@
   "For the record: Maren and Espen were married on December 30th, 2012, and still argue about whether the string quartet was worth it.": {
     "entities": [{"name": "Maren", "aliases": []}, {"name": "Espen", "aliases": []}],
     "relations": [{"subject": "Maren", "label": "married_to", "object": "Espen"}],
-    "special_dates": [{"entity": "Maren", "label": "wedding anniversary", "month": 12, "day": 30, "year": 2012}]
+    "special_dates": [{"entity": "Maren", "label": "wedding anniversary", "month": 12, "day": 30, "year": 2012}, {"entity": "Espen", "label": "wedding anniversary", "month": 12, "day": 30, "year": 2012}]
   },
   "Otto swam his first full lap of the big pool at Saturday lessons. He was so proud he wore his goggles to dinner.": {
     "entities": [{"name": "Otto", "aliases": []}]
@@ -16,7 +16,7 @@
     "relations": [{"subject": "Freya", "label": "interested_in", "object": "foxes"}]
   },
   "Farmor Ingrid was born on February 29th, 1956 — a proper leap-day baby, and she will not let anyone move the celebration to March.": {
-    "entities": [{"name": "Ingrid", "aliases": ["Farmor"]}],
+    "entities": [{"name": "Ingrid", "aliases": ["Farmor", "Farmor Ingrid"]}],
     "special_dates": [{"entity": "Ingrid", "label": "birthday", "month": 2, "day": 29, "year": 1956}]
   },
   "Otto's birthday for the family file: June 21st, born 2015. Midsummer boy — he wants a pool party every single year.": {
@@ -66,7 +66,7 @@
     "entities": [{"name": "Freya", "aliases": []}]
   },
   "Otto joined the Dolphins swim club. Coach Ruth says his freestyle is raw but his kick is the strongest in the group.": {
-    "entities": [{"name": "Otto", "aliases": []}, {"name": "Dolphins", "aliases": []}, {"name": "Ruth", "aliases": ["Coach Ruth"]}],
+    "entities": [{"name": "Otto", "aliases": []}, {"name": "Dolphins", "aliases": ["Dolphins swim club"]}, {"name": "Ruth", "aliases": ["Coach Ruth"]}],
     "relations": [{"subject": "Otto", "label": "member_of", "object": "Dolphins"}, {"subject": "Ruth", "label": "coaches", "object": "Otto"}]
   },
   "Easter at Tallhaven: Ingrid hid forty-two eggs and forgot where eleven went. Waffle found nine of them.": {
@@ -126,7 +126,8 @@
     "entities": [{"name": "Waffle", "aliases": []}]
   },
   "Thirteen years married. We left the kids with Ingrid and had dinner at the harbor. Maren still will not concede the string-quartet argument.": {
-    "entities": [{"name": "Maren", "aliases": []}, {"name": "Ingrid", "aliases": []}]
+    "entities": [{"name": "Maren", "aliases": []}, {"name": "Espen", "aliases": []}, {"name": "Ingrid", "aliases": []}],
+    "special_dates": [{"entity": "Maren", "label": "wedding anniversary", "month": 12, "day": 30, "year": 2012}, {"entity": "Espen", "label": "wedding anniversary", "month": 12, "day": 30, "year": 2012}]
   },
   "Freya turned seven! Dinosaur park trip with Liv and Noor, and Ingrid baked a nut-free brachiosaurus cake so Noor could have seconds.": {
     "entities": [{"name": "Freya", "aliases": []}, {"name": "Liv", "aliases": []}, {"name": "Noor", "aliases": []}, {"name": "Ingrid", "aliases": []}]
@@ -142,7 +143,7 @@
     "entities": [{"name": "Espen", "aliases": []}]
   },
   "Celebrated Farmor Ingrid's birthday tonight, since there is no February 29th this year. Seventy years old — or seventeen and a half, by her own counting.": {
-    "entities": [{"name": "Ingrid", "aliases": ["Farmor"]}]
+    "entities": [{"name": "Ingrid", "aliases": ["Farmor", "Farmor Ingrid"]}]
   },
   "Big news: Ingrid sold the Tallhaven house and moved into the little apartment on Rosevik Square, ten minutes from us. No more four-hour drives.": {
     "entities": [{"name": "Ingrid", "aliases": []}, {"name": "Tallhaven", "aliases": []}, {"name": "Rosevik Square", "aliases": []}],

@@ -47,8 +47,11 @@ class GoldenRecall:
 
 @dataclass(frozen=True)
 class GoldenProfile:
-    """A profile lookup: ``name`` (often an alias) must resolve to the
-    expected entity and carry the expected relations and memories."""
+    """A profile lookup: ``name`` (often an alias) must resolve to the same
+    entity as ``expect_entity``, connected to each expected relation's other
+    endpoint and carrying the expected memories. A relation's label documents
+    what the connection means; the harness scores the connection itself,
+    since relation labels are open strings (CONTEXT.md)."""
 
     question: str
     name: str

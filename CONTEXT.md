@@ -17,7 +17,7 @@ A labeled connection between two entities, extracted from memories (e.g. Ana —
 The set of extracted entities and relations. It is a *derived, disposable index* over memories: it can be dropped and rebuilt from the memories at any time, and losing it loses no data.
 
 ### SpecialDate
-A structured, recurring date tied to an entity (birthday, anniversary, school event). Extracted from memories into a deterministic index — date questions are answered by exact query, never by retrieval. Like the graph, it is derived and rebuildable.
+A structured, recurring date tied to an entity (birthday, anniversary, school event). A date shared by several people — a wedding anniversary — is one SpecialDate per person it belongs to. Extracted from memories into a deterministic index — date questions are answered by exact query, never by retrieval. Like the graph, it is derived and rebuildable.
 
 ### Community
 A cluster of closely connected entities in the graph (e.g. everything around one child: their school, friends, hobbies). Communities are detected automatically, not hand-defined.

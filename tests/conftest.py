@@ -10,7 +10,7 @@ from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from homelore.domain import Entity, Extraction, Memory
+from homelore.domain import Entity, Extraction, Memory, Relation
 from homelore.ports import Extractor
 from homelore.service import HomeloreService
 from homelore.store import MemoryStore
@@ -70,14 +70,24 @@ class FakeExtractor:
     def __init__(self, extractions: dict[str, Extraction] | None = None) -> None:
         self._extractions = extractions or {}
 
-    def extract(self, text: str, known_entities: Sequence[Entity]) -> Extraction:
-        return self._extractions.get(text, Extraction())
+    def extract(
+        self,
+        memory: Memory,
+        known_entities: Sequence[Entity],
+        known_relations: Sequence[Relation],
+    ) -> Extraction:
+        return self._extractions.get(memory.text, Extraction())
 
 
 class FailingExtractor:
     """An extractor whose model call always fails, for resilience tests."""
 
-    def extract(self, text: str, known_entities: Sequence[Entity]) -> Extraction:
+    def extract(
+        self,
+        memory: Memory,
+        known_entities: Sequence[Entity],
+        known_relations: Sequence[Relation],
+    ) -> Extraction:
         raise RuntimeError("extraction model unavailable")
 
 

@@ -24,6 +24,7 @@ from homelore.domain import (
     ExtractedSpecialDate,
     Extraction,
     ImportResult,
+    Memory,
     MemoryDraft,
     ReindexResult,
     Relation,
@@ -238,11 +239,16 @@ class InterruptingExtractor:
         self._extractions = extractions
         self._calls = 0
 
-    def extract(self, text: str, known_entities: Sequence[Entity]) -> Extraction:
+    def extract(
+        self,
+        memory: Memory,
+        known_entities: Sequence[Entity],
+        known_relations: Sequence[Relation],
+    ) -> Extraction:
         self._calls += 1
         if self._calls > 1:
             raise KeyboardInterrupt
-        return self._extractions.get(text, Extraction())
+        return self._extractions.get(memory.text, Extraction())
 
 
 def test_interrupted_reindex_loses_nothing_and_rerunning_completes_it(tmp_path: Path) -> None:

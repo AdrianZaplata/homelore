@@ -9,8 +9,12 @@ here instead of guessed.
 Metrics, per the golden pair's tool:
 
 - ``recall`` — recall@k: the fraction of expected memories among the top hits.
-- ``profile`` — pass/fail: the name resolves to the expected entity carrying
-  the expected relations and memories.
+- ``profile`` — pass/fail: the name resolves to the same entity as the
+  expected name (identity, not canonical-name string), the profile connects
+  each expected relation's endpoints, and the expected memories are present.
+  Relation labels are open strings (CONTEXT.md), so an expected relation's
+  label documents intent while scoring checks the connection, endpoints
+  resolved through the same alias machinery users go through.
 - ``upcoming_dates`` — exactness: every expected occurrence, nothing else, in
   order. No partial credit.
 - ``reflect`` — LLM-judged faithfulness: is the synthesis grounded in the
@@ -156,16 +160,29 @@ def _score_profile(service: HomeloreService, pair: GoldenProfile) -> QuestionSco
     def fail(detail: str) -> QuestionScore:
         return QuestionScore(tool="profile", question=pair.question, score=0.0, detail=detail)
 
+    def canonical(name: str) -> str:
+        resolved = service.profile(name)
+        return name if resolved is None else resolved.entity.name
+
     profile = service.profile(pair.name)
     if profile is None:
         return fail(f"{pair.name!r} resolves to no entity")
-    if profile.entity.name != pair.expect_entity:
+    if profile.entity.name != canonical(pair.expect_entity):
         return fail(
             f"{pair.name!r} resolved to {profile.entity.name!r}, not {pair.expect_entity!r}"
         )
-    relations = {supported.relation for supported in profile.relations}
-    if missing_relations := [r for r in pair.expect_relations if r not in relations]:
-        return fail(f"missing relations: {missing_relations}")
+    connected = {
+        frozenset((supported.relation.subject, supported.relation.object))
+        for supported in profile.relations
+    }
+    if missing := [
+        relation
+        for relation in pair.expect_relations
+        if frozenset((canonical(relation.subject), canonical(relation.object))) not in connected
+    ]:
+        return fail(
+            "no relation connects " + "; ".join(f"{r.subject!r} and {r.object!r}" for r in missing)
+        )
     memory_texts = [memory.text for memory in profile.memories]
     if missing_memories := [
         expected

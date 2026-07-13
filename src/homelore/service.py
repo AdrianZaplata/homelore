@@ -100,7 +100,9 @@ class HomeloreService:
             embedding=embedding,
         )
         try:
-            extraction = extractor.extract(draft.text, self._store.list_entities())
+            extraction = extractor.extract(
+                memory, self._store.list_entities(), self._store.list_relations()
+            )
             derived = self._store.save_extraction(memory.id, extraction)
         except Exception:
             _logger.exception("extraction failed for memory %d; marked for retry", memory.id)
@@ -129,7 +131,9 @@ class HomeloreService:
         reextracted = failed = 0
         for memory in self._store.pending_extractions():
             try:
-                extraction = extractor.extract(memory.text, self._store.list_entities())
+                extraction = extractor.extract(
+                    memory, self._store.list_entities(), self._store.list_relations()
+                )
                 self._store.save_extraction(memory.id, extraction)
                 reextracted += 1
             except Exception:

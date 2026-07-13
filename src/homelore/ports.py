@@ -2,22 +2,30 @@ from collections.abc import Callable, Sequence
 from datetime import datetime
 from typing import Protocol
 
-from homelore.domain import Entity, Extraction, Memory
+from homelore.domain import Entity, Extraction, Memory, Relation
 
 Clock = Callable[[], datetime]
 """Returns the current time as an aware UTC datetime."""
 
 
 class Extractor(Protocol):
-    """Derives entities, relations, and special dates from one memory text.
+    """Derives entities, relations, and special dates from one memory.
 
-    ``known_entities`` lets the implementation resolve aliases to existing
-    entities: an extracted entity naming a known entity (by canonical name or
-    alias) is the same entity. May raise on failure; callers must treat a
-    failure as retryable, never as data loss.
+    The memory carries its author and timestamps, grounding first-person
+    mentions ("my wife") and relative dates ("a year ago on December 27th").
+    ``known_entities`` and ``known_relations`` let the implementation resolve
+    mentions to existing entities: a mention naming a known entity — by
+    canonical name, by alias, or through the author and a known relation —
+    is that entity. May raise on failure; callers must treat a failure as
+    retryable, never as data loss.
     """
 
-    def extract(self, text: str, known_entities: Sequence[Entity]) -> Extraction: ...
+    def extract(
+        self,
+        memory: Memory,
+        known_entities: Sequence[Entity],
+        known_relations: Sequence[Relation],
+    ) -> Extraction: ...
 
 
 class Summarizer(Protocol):

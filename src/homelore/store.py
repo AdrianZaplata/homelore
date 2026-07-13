@@ -288,6 +288,20 @@ class MemoryStore:
             for row in self._connection.execute("SELECT id, name FROM entities ORDER BY id")
         ]
 
+    def list_relations(self) -> tuple[Relation, ...]:
+        """Every distinct relation with canonical endpoint names, in
+        first-asserted order — the graph context extraction resolves
+        first-person mentions ("my wife") against."""
+        rows = self._connection.execute(
+            "SELECT subject.name, relations.label, object.name"
+            " FROM relations"
+            " JOIN entities AS subject ON subject.id = relations.subject_id"
+            " JOIN entities AS object ON object.id = relations.object_id"
+            " GROUP BY relations.subject_id, relations.label, relations.object_id"
+            " ORDER BY MIN(relations.rowid)"
+        ).fetchall()
+        return tuple(Relation(subject=row[0], label=row[1], object=row[2]) for row in rows)
+
     def save_extraction(self, memory_id: int, extraction: Extraction) -> DerivedFacts:
         """Fold one memory's extraction into the derived indexes, atomically.
 
