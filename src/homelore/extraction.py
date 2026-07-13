@@ -47,9 +47,10 @@ dates; when an event is never pinned to a month and day, return null for both an
 entry will be dropped rather than guessed. Set year to the year the occasion first \
 happened — the birth, the wedding, the day the pet came home — when stated or computable, \
 else null; mind the arithmetic on ordinals: a "second gotcha day" in a note written in \
-2025 means the pet came home in 2023. Public \
-holidays (Valentine's Day, New Year's Eve) and one-off events or milestones that merely \
-happened on some date (a lost tooth, a race won) are not special dates.
+2025 means the pet came home in 2023. Birthdays, wedding anniversaries, and gotcha days \
+always qualify; any other date qualifies only when the note shows the family marking it \
+every year. Public holidays (Valentine's Day, New Year's Eve) and one-off milestones (a \
+lost tooth, starting school) never qualify. When unsure, leave the date out.
 
 Extract what the text states or clearly implies; empty lists are fine. Never guess \
 names, dates, or years the note does not support.

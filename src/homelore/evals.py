@@ -4,7 +4,9 @@ One command — ``python -m homelore.evals`` — builds a fresh demo instance wi
 the real adapters (Anthropic extractor, local embedder), runs every golden
 pair through the application service seam, and prints a per-tool scorecard
 with each failing question listed. Prompt and ranking changes are measured
-here instead of guessed.
+here instead of guessed. The exit status is gated on per-tool quality floors
+(FLOORS): red means a tool regressed below its measured frontier, not that a
+known-hard question is still hard.
 
 Metrics, per the golden pair's tool:
 
@@ -45,6 +47,19 @@ from homelore.service import HomeloreService
 
 K = 5
 """Recall questions score against the top K hits — the assistant's default."""
+
+FLOORS = {
+    "recall": 0.85,
+    "profile": 0.90,
+    "upcoming_dates": 0.83,
+    "reflect": 0.87,
+}
+"""Each tool's quality floor: the measured frontier, moved up as it improves.
+
+Every failing question is still listed — the scorecard is the signal — but
+the run's exit status turns red only when a tool's mean score falls below its
+floor. Red means regression; the known-hard questions above the floor are the
+frontier the golden set exists to keep in view."""
 
 
 class AdjustableClock:
@@ -99,6 +114,18 @@ class Scorecard:
 
     def failures(self) -> tuple[QuestionScore, ...]:
         return tuple(score for score in self.scores if score.score < 1.0)
+
+    def tools(self) -> tuple[str, ...]:
+        return tuple(dict.fromkeys(score.tool for score in self.scores))
+
+    def mean(self, tool: str) -> float:
+        scores = [score.score for score in self.scores if score.tool == tool]
+        return sum(scores) / len(scores)
+
+    def breached_floors(self) -> tuple[str, ...]:
+        """Tools whose mean fell below their FLOORS entry — the red-run
+        criterion. A tool without a floor must be perfect."""
+        return tuple(tool for tool in self.tools() if self.mean(tool) < FLOORS.get(tool, 1.0))
 
 
 def run_evals(
@@ -240,21 +267,33 @@ _METRICS = {
 
 
 def format_scorecard(scorecard: Scorecard) -> str:
-    """The per-tool scorecard, every failing question listed with its reason."""
+    """The per-tool scorecard against its floor, every failing question
+    listed with its reason, and the floor verdict the exit status follows."""
     lines: list[str] = []
-    for tool in dict.fromkeys(score.tool for score in scorecard.scores):
+    for tool in scorecard.tools():
         scores = [score for score in scorecard.scores if score.tool == tool]
         clean = sum(1 for score in scores if score.score == 1.0)
-        line = f"  {tool:<15} {_METRICS[tool]:<13} {clean}/{len(scores)} clean"
-        if tool == "recall":
-            line += f"   (mean recall {sum(s.score for s in scores) / len(scores):.2f})"
-        lines.append(line)
+        lines.append(
+            f"  {tool:<15} {_METRICS[tool]:<13} {clean}/{len(scores)} clean"
+            f"   mean {scorecard.mean(tool):.2f} (floor {FLOORS.get(tool, 1.0):.2f})"
+        )
     if failures := scorecard.failures():
         lines += ["", f"{len(failures)} failures:"]
         for failure in failures:
             lines += [f"  {failure.tool}: {failure.question}", f"    {failure.detail}"]
     else:
         lines += ["", f"All {len(scorecard.scores)} questions clean."]
+    if breached := scorecard.breached_floors():
+        lines += [
+            "",
+            "Below the floor: "
+            + ", ".join(
+                f"{tool} ({scorecard.mean(tool):.2f} < {FLOORS.get(tool, 1.0):.2f})"
+                for tool in breached
+            ),
+        ]
+    else:
+        lines += ["", "Every tool at or above its floor."]
     return "\n".join(lines)
 
 
@@ -349,9 +388,10 @@ fixtures' recent past stays recent, so recency scoring is reproducible."""
 
 def main() -> None:
     """Build a fresh Demo Family instance with the real adapters, run every
-    golden pair, print the scorecard. Exits nonzero when any question fails —
-    a red run is a signal to investigate, and never gates a PR (the eval
-    workflow does not run on pull requests)."""
+    golden pair, print the scorecard. Exits nonzero only when a tool falls
+    below its quality floor (FLOORS) — red means regression, while the
+    known-hard questions above the floor stay listed as the frontier. Never
+    gates a PR (the eval workflow does not run on pull requests)."""
     # The real-adapter imports stay inside main(): the unit suite imports
     # this module keyless, and homelore.embedding pulls in the fastembed
     # runtime at import time.
@@ -390,7 +430,7 @@ def main() -> None:
             service, clock, ClaudeJudge(), demo_golden(), [draft.text for draft in drafts]
         )
     print(format_scorecard(scorecard))
-    if scorecard.failures():
+    if scorecard.breached_floors():
         raise SystemExit(1)
 
 

@@ -11,14 +11,18 @@ You write a Community Summary: a short synthesis of one cluster of a family's me
 all revolving around the same circle of people, places, and interests.
 
 Describe what these memories say as a whole — the themes, how things changed over time, and \
-the moments that stand out. Ground every statement in the memories provided: never invent \
-facts, dates, or people, and leave out anything the memories do not say. Write a short \
-flowing paragraph, not a list.
+the moments that stand out. The summary is the family's material for answering questions \
+about this circle later, so make it end current: carry each person's, pet's, and interest's \
+present state and most recent changes (a new fear, a new home, a fading phase), not only \
+the highlights of how things began. Ground every statement in the memories provided: never \
+invent facts, dates, or people, and leave out anything the memories do not say. Write a \
+short flowing paragraph, not a list.
 """
 
 
 class ClaudeSummarizer:
-    """Community summaries against Claude Haiku 4.5, plain text output.
+    """Community summaries against Claude Haiku 4.5, plain text output, at
+    temperature 0 so a rebuilt community summarizes the same way twice.
 
     Errors propagate — summaries are derived and rebuildable, so a failed
     refresh costs nothing but the retry on the next reflect.
@@ -31,6 +35,7 @@ class ClaudeSummarizer:
         response = self._client.messages.create(
             model=MODEL,
             max_tokens=1024,
+            temperature=0.0,
             system=_SYSTEM,
             messages=[{"role": "user", "content": _prompt(entities, memories)}],
         )

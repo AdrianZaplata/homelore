@@ -157,6 +157,34 @@ def test_a_grounding_substring_matching_no_memory_is_a_golden_set_bug(
         run_evals(service, clock, ApprovingJudge(), [bogus], SOURCES)
 
 
+def test_a_frontier_failure_at_the_floor_is_listed_but_does_not_breach() -> None:
+    card = Scorecard(
+        scores=(
+            QuestionScore("recall", "the known-hard question", 0.0),
+            *(QuestionScore("recall", f"question {i}", 1.0) for i in range(6)),
+        )
+    )
+
+    # Mean 6/7 ≈ 0.86 sits on the 0.85 recall floor: the failure is listed,
+    # the run stays green.
+    assert card.failures()
+    assert card.breached_floors() == ()
+    assert "Every tool at or above its floor." in format_scorecard(card)
+
+
+def test_a_tool_below_its_floor_breaches_and_the_scorecard_says_so() -> None:
+    card = Scorecard(
+        scores=(
+            QuestionScore("profile", "Who is X?", 0.0),
+            QuestionScore("profile", "Who is Y?", 1.0),
+        )
+    )
+
+    # Mean 0.50 is under the 0.90 profile floor: this is a regression.
+    assert card.breached_floors() == ("profile",)
+    assert "Below the floor: profile (0.50 < 0.90)" in format_scorecard(card)
+
+
 def test_scorecard_reports_each_tool_and_lists_each_failing_question() -> None:
     card = Scorecard(
         scores=(

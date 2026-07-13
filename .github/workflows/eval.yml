@@ -1,7 +1,9 @@
 # Secret-gated eval: builds the Demo Family with the real adapters and runs
 # the golden set. Non-blocking by design — it never runs on pull requests
 # (fork PRs can't see secrets, and LLM-judged metrics are too noisy to gate
-# on). A red run on main is a signal to investigate, not a gate.
+# on). The exit status is gated on per-tool quality floors: a red run on
+# main means a tool regressed below its measured frontier, not that a
+# known-hard question is still hard.
 name: Eval
 
 on:
