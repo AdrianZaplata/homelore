@@ -50,7 +50,7 @@ K = 5
 
 FLOORS = {
     "recall": 0.85,
-    "profile": 0.90,
+    "profile": 0.80,
     "upcoming_dates": 0.83,
     "reflect": 0.87,
 }

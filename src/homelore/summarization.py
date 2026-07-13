@@ -12,11 +12,11 @@ all revolving around the same circle of people, places, and interests.
 
 Describe what these memories say as a whole — the themes, how things changed over time, and \
 the moments that stand out. The summary is the family's material for answering questions \
-about this circle later, so make it end current: carry each person's, pet's, and interest's \
-present state and most recent changes (a new fear, a new home, a fading phase), not only \
-the highlights of how things began. Ground every statement in the memories provided: never \
-invent facts, dates, or people, and leave out anything the memories do not say. Write a \
-short flowing paragraph, not a list.
+about this circle later, so it must both end current and keep the arc: carry each person's, \
+pet's, and interest's present state and most recent changes (a new fear, a new home, a \
+fading phase), and the milestones along the way (results, firsts, wins). Ground every \
+statement in the memories provided: never invent facts, dates, or people, and leave out \
+anything the memories do not say. Write a short flowing paragraph, not a list.
 """
 
 
@@ -34,7 +34,7 @@ class ClaudeSummarizer:
     def summarize(self, entities: Sequence[str], memories: Sequence[Memory]) -> str:
         response = self._client.messages.create(
             model=MODEL,
-            max_tokens=1024,
+            max_tokens=2048,
             temperature=0.0,
             system=_SYSTEM,
             messages=[{"role": "user", "content": _prompt(entities, memories)}],
