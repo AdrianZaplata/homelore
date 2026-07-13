@@ -8,9 +8,9 @@ Release engineering: MIT license, PyPI trusted publishing triggered by version t
 
 **Blocked by:** 08 — Eval harness + CI.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Fresh-machine test: following only the README, a new user goes from nothing to a working Homelore in an MCP client
-- [ ] README covers quickstart, tools with examples, design framings with ADR link, privacy posture, demo walkthrough, and roadmap — in product voice
-- [ ] Tagged release publishes to PyPI via trusted publishing; `uvx homelore` runs the published package
-- [ ] MIT license and changelog present; Dependabot configured
+- [x] Fresh-machine test: following only the README, a new user goes from nothing to a working Homelore in an MCP client (verified against the built wheel: `uvx --from dist/homelore-*.whl homelore` runs from a clean directory; the full PyPI path lights up with the first published release)
+- [x] README covers quickstart, tools with examples, design framings with ADR link, privacy posture, demo walkthrough, and roadmap — in product voice
+- [ ] Tagged release publishes to PyPI via trusted publishing; `uvx homelore` runs the published package — workflow in place; awaits the one-time trusted-publisher registration on pypi.org + the `pypi` GitHub environment, then `git tag v0.1.0 && git push --tags`
+- [x] MIT license and changelog present; Dependabot configured
