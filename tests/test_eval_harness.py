@@ -180,9 +180,9 @@ def test_a_tool_below_its_floor_breaches_and_the_scorecard_says_so() -> None:
         )
     )
 
-    # Mean 0.50 is under the 0.80 profile floor: this is a regression.
+    # Mean 0.50 is under the 0.70 profile floor: this is a regression.
     assert card.breached_floors() == ("profile",)
-    assert "Below the floor: profile (0.50 < 0.80)" in format_scorecard(card)
+    assert "Below the floor: profile (0.50 < 0.70)" in format_scorecard(card)
 
 
 def test_scorecard_reports_each_tool_and_lists_each_failing_question() -> None:

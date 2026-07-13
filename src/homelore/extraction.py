@@ -37,7 +37,10 @@ forms as aliases, and record a kinship or title word the family uses on its own 
 free-form snake_case strings chosen to fit the memory (e.g. interested_in, attends, \
 parent_of) — there is no fixed vocabulary. Record the connections a reader of each \
 person's profile would expect to find there: where they live, what they are into, what \
-they belong to, who they know.
+they belong to, who they know. The known lists exist to resolve mentions, not to \
+deduplicate: record every relation this note supports even when a matching one is \
+already known — re-assertion is how a fact stays current. Name an interest or hobby by \
+its plain noun ("beekeeping", "dinosaurs").
 - special_dates: dates the family will mark every year, each tied to a person, pet, or \
 place the family knows: birthdays, wedding anniversaries, a pet's gotcha day. Label each \
 the way the family says it ("birthday", "wedding anniversary", "gotcha day"). A shared \
