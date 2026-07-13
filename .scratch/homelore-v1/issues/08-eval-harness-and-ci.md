@@ -10,9 +10,9 @@ A second CI workflow runs the harness on pushes to main and on manual dispatch, 
 
 **Blocked by:** 07 — Demo Family fixtures + golden set.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] One command builds the demo instance, runs all golden pairs, and prints a per-tool scorecard with per-question failures listed
-- [ ] Metrics: recall@k, date exactness, and LLM-judge faithfulness are all reported
-- [ ] Eval CI workflow runs on main and manual dispatch, secret-gated, non-blocking for PRs
-- [ ] The keyless unit-test workflow remains unaffected and green
+- [x] One command builds the demo instance, runs all golden pairs, and prints a per-tool scorecard with per-question failures listed
+- [x] Metrics: recall@k, date exactness, and LLM-judge faithfulness are all reported
+- [x] Eval CI workflow runs on main and manual dispatch, secret-gated, non-blocking for PRs
+- [x] The keyless unit-test workflow remains unaffected and green
