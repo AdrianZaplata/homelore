@@ -58,9 +58,10 @@ to your assistant:
 That's the whole workflow. The first start downloads a small local embedding
 model (one-time); after that, retrieval works offline.
 
-Your memories live in a single SQLite file (in your user data directory by
-default; set `HOMELORE_DB_PATH` or pass `--db-path` to move it). Backup is
-copying one file.
+Your memories live in a single SQLite file (`homelore.db` in the directory
+the server is started from — for an MCP client launched inside a project,
+that's the project folder; set `HOMELORE_DB_PATH` or pass `--db-path` to move
+it). Backup is copying one file.
 
 ## The five tools
 

@@ -51,7 +51,7 @@ def main() -> None:
     )
     for subparser in (serve, import_, reindex):
         subparser.add_argument(
-            "--db-path", help="SQLite file (default: $HOMELORE_DB_PATH or user data dir)"
+            "--db-path", help="SQLite file (default: $HOMELORE_DB_PATH or ./homelore.db)"
         )
     args = parser.parse_args()
 
