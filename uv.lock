@@ -431,6 +431,7 @@ dependencies = [
     { name = "anthropic" },
     { name = "fastembed" },
     { name = "mcp" },
+    { name = "python-dotenv" },
     { name = "sqlite-vec" },
 ]
 
@@ -446,6 +447,7 @@ requires-dist = [
     { name = "anthropic", specifier = ">=0.116.0" },
     { name = "fastembed", specifier = ">=0.7" },
     { name = "mcp", specifier = ">=1.9" },
+    { name = "python-dotenv", specifier = ">=1.0" },
     { name = "sqlite-vec", specifier = ">=0.1.6" },
 ]
 
