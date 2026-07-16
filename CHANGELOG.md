@@ -6,6 +6,27 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-16
+
+### Changed
+
+- The database now defaults to `homelore.db` in the current working
+  directory instead of the platformdirs user data directory, so an MCP
+  client launched inside a project keeps that project's memories next to
+  it. `--db-path` and `$HOMELORE_DB_PATH` still take precedence.
+
+  **Migration note:** an existing database in the old location (e.g.
+  `%LOCALAPPDATA%\homelore\homelore\homelore.db` on Windows,
+  `~/.local/share/homelore/homelore.db` on Linux) is not picked up
+  automatically — copy it into your project folder, or set
+  `HOMELORE_DB_PATH` to keep using it. Clients that launch servers from a
+  system directory (e.g. Claude Desktop) should set `HOMELORE_DB_PATH` or
+  `--db-path` explicitly.
+
+### Removed
+
+- The `platformdirs` dependency, no longer needed.
+
 ## [0.1.0] - 2026-07-13
 
 The first release: a self-hosted family memory over MCP.
@@ -31,5 +52,6 @@ The first release: a self-hosted family memory over MCP.
   (`python -m homelore.evals`) scoring recall, profile resolution, date
   exactness, and reflect faithfulness.
 
-[Unreleased]: https://github.com/AdrianZaplata/homelore/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/AdrianZaplata/homelore/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/AdrianZaplata/homelore/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/AdrianZaplata/homelore/releases/tag/v0.1.0
