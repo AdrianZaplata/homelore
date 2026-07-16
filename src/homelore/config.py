@@ -1,8 +1,21 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 DB_PATH_ENV_VAR = "HOMELORE_DB_PATH"
 API_KEY_ENV_VAR = "ANTHROPIC_API_KEY"
+
+
+def load_env_file() -> None:
+    """Load ./.env into the environment; a variable already set wins.
+
+    The working directory is where the MCP client started the server — the
+    same place the default database lands — so a project can keep its key in
+    a git-ignored .env next to its homelore.db instead of in client config.
+    A missing .env is simply no configuration.
+    """
+    load_dotenv(Path.cwd() / ".env")
 
 
 def api_key_present() -> bool:

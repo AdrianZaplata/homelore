@@ -49,8 +49,10 @@ claude mcp add homelore --scope user -- uvx homelore serve
 ```
 
 `ANTHROPIC_API_KEY` must reach the server: pass it in the client config as
-above, or export it in the environment the client starts from. Then just talk
-to your assistant:
+above, export it in the environment the client starts from, or put it in a
+`.env` file in the directory the server starts from (next to `homelore.db`) —
+keep that file out of version control. A variable already set in the
+environment wins over the `.env` value. Then just talk to your assistant:
 
 > **You:** Remember that Mia moved up to shoe size 32.
 > **Assistant:** Saved it.

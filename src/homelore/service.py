@@ -30,7 +30,8 @@ class MissingApiKeyError(Exception):
 
 _HOW_TO_SET_KEY = (
     " Get a key at https://console.anthropic.com and set the ANTHROPIC_API_KEY"
-    " environment variable. Recalling existing memories keeps working without it."
+    " environment variable, or put it in a .env file in the directory the"
+    " server starts from. Recalling existing memories keeps working without it."
 )
 
 MISSING_KEY_MESSAGE = (

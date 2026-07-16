@@ -6,6 +6,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- A `.env` file in the working directory now configures the server
+  (`ANTHROPIC_API_KEY`, `HOMELORE_DB_PATH`), so the key can live in a
+  git-ignored file next to the database instead of inline in MCP client
+  config. Variables already set in the environment take precedence.
+
 ## [0.2.0] - 2026-07-16
 
 ### Changed

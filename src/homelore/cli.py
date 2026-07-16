@@ -2,7 +2,7 @@ import argparse
 from datetime import UTC, datetime
 from pathlib import Path
 
-from homelore.config import api_key_present, resolve_db_path
+from homelore.config import api_key_present, load_env_file, resolve_db_path
 from homelore.demo import demo_memories
 from homelore.domain import ImportResult
 from homelore.embedding import LocalEmbedder
@@ -19,6 +19,7 @@ def _utc_now() -> datetime:
 
 
 def main() -> None:
+    load_env_file()
     parser = argparse.ArgumentParser(prog="homelore", description="Self-hosted family memory")
     subparsers = parser.add_subparsers(dest="command", required=True)
     serve = subparsers.add_parser("serve", help="Run the MCP server over stdio")
